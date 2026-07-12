@@ -901,11 +901,11 @@ function PageContent() {
     {
       label: "VALORANT",
       items: [
-        { id: "val1", img: "/valopp1.webp", ring: "from-[#ff4655] to-red-700" },
+        { id: "val1", img: "/valopp1.jpg", ring: "from-[#ff4655] to-red-700" },
         { id: "val2", img: "/valopp2.jpg", ring: "from-slate-400 to-slate-600" },
-        { id: "val3", img: "/valopp3.jpg", ring: "from-yellow-300 to-amber-500" },
+        { id: "val3", img: "/valopp3.webp", ring: "from-yellow-300 to-amber-500" },
         { id: "val4", img: "/valopp4.jpg", ring: "from-cyan-300 to-teal-500" },
-        { id: "val5", img: "/valopp5.jpg", ring: "from-purple-400 to-purple-700" },
+        { id: "val5", img: "/valopp5.png", ring: "from-purple-400 to-purple-700" },
       ],
     },
   ];
