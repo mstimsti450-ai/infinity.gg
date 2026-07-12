@@ -1071,7 +1071,7 @@ function PageContent() {
   const [mapPreviewIndex, setMapPreviewIndex] = useState(0);
   const [mapPreviewCopied, setMapPreviewCopied] = useState(false);
   const CROSSHAIR_PREVIEW_MAPS = [
-    { name: "Sunset", img: "/sunset.avif" },
+    { name: "Sunset", img: "/sunset.webp" },
     { name: "Summit", img: "/summit.avif" },
     { name: "Bind", img: "/bind.webp" },
   ];
