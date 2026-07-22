@@ -14,8 +14,18 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Infinity.gg",
-  description: "Valorant analytics platform",
+  title: "Infinity Network - Valorant Topluluk Platformu",
+  description:
+    "Valorant nişangahlarını keşfet, Rank Tahmin oyna, Kliplerini paylaş ve Infinity Network topluluğuna katıl.",
+  icons: {
+    icon: "/logo.png",
+  },
+  openGraph: {
+    title: "İnfinity Network",
+    description:
+      "Valorant nişangahlarını keşfet, Rank Tahmin oyna ve topluluğa katıl.",
+    images: ["/banner.png"],
+  },
 };
 
 export default function RootLayout({
