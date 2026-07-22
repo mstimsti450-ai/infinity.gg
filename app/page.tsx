@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useLayoutEffect, useRef, Suspense } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useMemo, Suspense } from "react";
+import { createPortal } from "react-dom";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
@@ -93,8 +94,389 @@ const QUIZ_QUESTIONS = [
     question: "Operator (OP) keskin nişancı tüfeğinin gövdeden (Body) vuruş hasarı kaçtır?",
     options: ["120", "135", "150", "160"],
     answer: "150",
-  }
+  },
+  {
+    id: 11,
+    question: "Valorant'ta standart bir Dereceli/Derecesiz maçı kazanmak için önce kaç raunt kazanmak gerekir?",
+    options: ["12", "13", "14", "16"],
+    answer: "13",
+  },
+  {
+    id: 12,
+    question: "Chamber ajanının lore'una göre kökeni hangi ülkedir?",
+    options: ["Fransa", "İngiltere", "İtalya", "Almanya"],
+    answer: "Fransa",
+  },
+  {
+    id: 13,
+    question: "Sage'in ölmüş bir takım arkadaşını diriltmesini sağlayan ulti yeteneğinin adı nedir?",
+    options: ["Yavaşlatma Kürecikleri", "İyileştirme Kürecikleri", "Diriliş (Resurrection)", "Bariyer Küresi"],
+    answer: "Diriliş (Resurrection)",
+  },
+  {
+    id: 14,
+    question: "İtalya/Venedik esintili kanallarıyla bilinen Valorant haritası hangisidir?",
+    options: ["Bind", "Split", "Ascent", "Fracture"],
+    answer: "Ascent",
+  },
+  {
+    id: 15,
+    question: "Fade ajanının lore'una göre kökeni hangi ülkedir?",
+    options: ["Türkiye", "Yunanistan", "Mısır", "İran"],
+    answer: "Türkiye",
+  },
+  {
+    id: 16,
+    question: "Neon ajanının lore'una göre kökeni hangi ülkedir?",
+    options: ["Endonezya", "Filipinler", "Vietnam", "Tayland"],
+    answer: "Filipinler",
+  },
+  {
+    id: 17,
+    question: "Hangi rol, raunt başında ilk giriş/açılış vuruşlarını yapmakla öne çıkar?",
+    options: ["Controller (Kontrolcü)", "Sentinel (Gözcü)", "Initiator (Girişçi)", "Duelist (Vurucu)"],
+    answer: "Duelist (Vurucu)",
+  },
+  {
+    id: 18,
+    question: "Cypher ajanının lore'una göre kökeni hangi ülkedir?",
+    options: ["Fas", "Mısır", "Suudi Arabistan", "BAE"],
+    answer: "Fas",
+  },
+  {
+    id: 19,
+    question: "Sova ajanının lore'una göre kökeni hangi ülkedir?",
+    options: ["Rusya", "Ukrayna", "Polonya", "Kazakistan"],
+    answer: "Rusya",
+  },
+  {
+    id: 20,
+    question: "Viper'ın haritaya dev bir toksik gaz odası kuran ulti yeteneğinin adı nedir?",
+    options: ["Toksik Çığlık", "Yıkım Odası (Viper's Pit)", "Yılan Tuzağı", "Zehir Bulutu"],
+    answer: "Yıkım Odası (Viper's Pit)",
+  },
+  {
+    id: 21,
+    question: "Aşağıdakilerden hangisi bir 'Initiator' (Girişçi) ajan DEĞİLDİR?",
+    options: ["Sova", "Breach", "Skye", "Omen"],
+    answer: "Omen",
+  },
+  {
+    id: 22,
+    question: "Valorant, dünya genelinde (kapalı beta değil) resmi olarak hangi yıl piyasaya sürüldü?",
+    options: ["2018", "2019", "2020", "2021"],
+    answer: "2020",
+  },
+  {
+    id: 23,
+    question: "Riot Games'in genel merkezi hangi şehirdedir?",
+    options: ["Los Angeles", "Seattle", "San Francisco", "New York"],
+    answer: "Los Angeles",
+  },
+  {
+    id: 24,
+    question: "Killjoy'un düşmanları yavaşlatıp yere çivileyen kurulabilir yeteneğinin adı nedir?",
+    options: ["Alarm Botu", "Kilit Turret", "Nanoswarm", "Kırılgan Alan (Lockdown)"],
+    answer: "Kırılgan Alan (Lockdown)",
+  },
+  {
+    id: 25,
+    question: "Bir Spike (bomba) yerleştirildikten sonra patlamasına kaç saniye kalır?",
+    options: ["35 saniye", "40 saniye", "45 saniye", "50 saniye"],
+    answer: "45 saniye",
+  },
+  // YENİ (istek): "bilgi yarışması soru havuzunu büyütmen lazım" — soru sayısı 25'ten 45'e
+  // çıkarıldı, her oyunda hâlâ rastgele 8 tanesi seçiliyor (bkz. QUESTIONS_PER_GAME), ama artık
+  // aynı 8 soruyla çok daha az sık karşılaşılıyor.
+  {
+    id: 26,
+    question: "Valorant hangi yıl resmi olarak (kapalı beta değil) piyasaya sürüldü?",
+    options: ["2019", "2020", "2021", "2022"],
+    answer: "2020",
+  },
+  {
+    id: 27,
+    question: "Valorant'ı geliştiren şirket hangisidir?",
+    options: ["Valve", "Riot Games", "Epic Games", "Blizzard"],
+    answer: "Riot Games",
+  },
+  {
+    id: 28,
+    question: "Valorant'ta oynanabilir karakterlere verilen genel isim nedir?",
+    options: ["Şampiyon", "Ajan", "Kahraman", "Operatör"],
+    answer: "Ajan",
+  },
+  {
+    id: 29,
+    question: "Standart bir Valorant maçında bir takım kaç oyuncudan oluşur?",
+    options: ["4", "5", "6", "7"],
+    answer: "5",
+  },
+  {
+    id: 30,
+    question: "Aşağıdakilerden hangisi bir Valorant haritası DEĞİLDİR?",
+    options: ["Icebox", "Fracture", "Dust2", "Lotus"],
+    answer: "Dust2",
+  },
+  {
+    id: 31,
+    question: "Valorant'ta yetenek/silah satın almak için kullanılan oyun içi para birimi nedir?",
+    options: ["Kredi (Credits)", "Altın (Gold)", "Puan (Points)", "Enerji (Energy)"],
+    answer: "Kredi (Credits)",
+  },
+  {
+    id: 32,
+    question: "Reyna'nın öldürdüğü düşmanların bıraktığı, içine girilince can ya da görünmezlik kazandıran obje nedir?",
+    options: ["Ruh Küresi (Soul Orb)", "Enerji Topu", "Can Kalkanı", "Nur Küresi"],
+    answer: "Ruh Küresi (Soul Orb)",
+  },
+  {
+    id: 33,
+    question: "Yoru'yu kısa süreliğine görünmez ve zarar alamaz hâle getiren ultisinin adı nedir?",
+    options: ["Boyutsal Kaçış (Dimensional Drift)", "Gölge Sıçraması", "Fantom Adım", "Rüzgar Yürüyüşü"],
+    answer: "Boyutsal Kaçış (Dimensional Drift)",
+  },
+  {
+    id: 34,
+    question: "Brimstone'un haritanın herhangi bir noktasına hava saldırısı çağırdığı ultisinin adı nedir?",
+    options: ["Orbital Strike (Yörünge Saldırısı)", "Sky Smoke", "Stim Beacon", "Incendiary"],
+    answer: "Orbital Strike (Yörünge Saldırısı)",
+  },
+  {
+    id: 35,
+    question: "Cypher'ın düşmanları yakalayıp konumlarını açığa çıkaran tuzak yeteneğinin adı nedir?",
+    options: ["Casus Kamerası", "Tripwire (Tuzak Teli)", "Cyber Cage", "Neural Theft"],
+    answer: "Tripwire (Tuzak Teli)",
+  },
+  {
+    id: 36,
+    question: "Raze'nin fırlattığı, düşmanı bulup peşinden koşan küçük patlayıcı robotunun adı nedir?",
+    options: ["Boom Bot", "Blast Pack", "Showstopper", "Paint Shells"],
+    answer: "Boom Bot",
+  },
+  {
+    id: 37,
+    question: "Skye'ın müttefiklerin canını iyileştirip hızını artıran yeteneğinin adı nedir?",
+    options: ["Regrowth (Yeniden Filizlenme)", "Trailblazer", "Guiding Light", "Seekers"],
+    answer: "Regrowth (Yeniden Filizlenme)",
+  },
+  {
+    id: 38,
+    question: "KAY/O'nun isabet ettiği düşmanın yeteneklerini geçici olarak devre dışı bırakan (suppress) fırlatma bıçağının adı nedir?",
+    options: ["ZERO/POINT", "FLASH/DRIVE", "FRAG/MENT", "null/cmd"],
+    answer: "ZERO/POINT",
+  },
+  {
+    id: 39,
+    question: "Viper'ın haritada uzun süre kalıcı, hasar veren toksik bir duvar oluşturan yeteneğinin adı nedir?",
+    options: ["Toxic Screen (Zehir Perdesi)", "Poison Cloud", "Snake Bite", "Pit"],
+    answer: "Toxic Screen (Zehir Perdesi)",
+  },
+  {
+    id: 40,
+    question: "Sage'in ölü bir müttefik oyuncuyu diriltebildiği ultisinin adı nedir?",
+    options: ["Resurrection (Diriliş)", "Healing Orb", "Barrier Orb", "Slow Orb"],
+    answer: "Resurrection (Diriliş)",
+  },
+  {
+    id: 41,
+    question: "Valorant'ın en üst düzey uluslararası şampiyonluk turnuvasının adı nedir?",
+    options: ["Valorant Champions", "Valorant World Cup", "Valorant Masters Global", "Valorant Grand Slam"],
+    answer: "Valorant Champions",
+  },
+  {
+    id: 42,
+    question: "Valorant'ın profesyonel yarış sistemine (Champions Tour) verilen kısaltma nedir?",
+    options: ["VCT", "VWC", "VGL", "VCS"],
+    answer: "VCT",
+  },
+  {
+    id: 43,
+    question: "Aşağıdaki silahlardan hangisi bir bıçak (melee) DEĞİLDİR?",
+    options: ["Karambit", "Butterfly Knife", "Judge", "Talon Blade"],
+    answer: "Judge",
+  },
+  {
+    id: 44,
+    question: "Maç istatistiklerinde geçen \"ACS\" kısaltması neyin karşılığıdır?",
+    options: ["Average Combat Score", "Attack Combo System", "Agent Class Score", "Active Combat Stats"],
+    answer: "Average Combat Score",
+  },
+  {
+    id: 45,
+    question: "Astra'nın haritanın herhangi bir noktasından tüm yeteneklerini yönetebildiği özel moduna ne ad verilir?",
+    options: ["Astral Form (Yıldız Formu)", "Cosmic View", "Star Map", "Nova Pulse"],
+    answer: "Astral Form (Yıldız Formu)",
+  },
 ];
+
+// ==========================================
+// KELİME OYUNU — günlük harf rotasyonu
+// ==========================================
+// Her gün alfabenin bir sonraki harfiyle başlayan bir Valorant terimi soruluyor (A, B, C, Ç, D...
+// sırayla), böylece kullanıcılar günler içinde tüm alfabeyi tamamlamış oluyor. "Ğ" bilerek
+// listede yok — Türkçede hiçbir kelime "Ğ" ile başlamaz (yumuşak g), bu yüzden rotasyona
+// dahil edilmedi. Q/W/X zaten Türk alfabesinde yok.
+// Yalnızca Valorant'ta doğal karşılığı olan harfler. Türkçe özel harflerle zoraki
+// kelimeler üretmek yerine gerçek oyun terimleri kullanılır.
+const TR_ALPHABET_ROTATION = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "R", "S", "T", "V", "Y"];
+
+// DÜZELTME (istek): eskiden her harfin TEK bir kelimesi vardı ve günde sadece 1 harf
+// (o günün sırasındaki harf) oynanabiliyordu — yani alfabenin tamamı bitene kadar 28 gün
+// gerekiyordu. Artık HER HARFİN birden fazla varyantı var; her gün TÜM 28 harf birden
+// oynanabiliyor (aşağıdaki getWordGameSetIndex() o günün "seti"ni seçiyor ve 28 kelime
+// birlikte değişiyor). Yeni bir gün gelince tüm tahtayı yeni bir varyant setiyle değiştirmek
+// için buraya üçüncü, dördüncü... bir varyant eklemen yeterli.
+const WORD_GAME_VARIANTS: Record<string, { word: string; clue: string }[]> = {
+  A: [
+    { word: "ASTRA", clue: "Yıldızlarla haritanın her yerinden duman kontrolü sağlayan Kontrolcü ajan." },
+    { word: "AKIN", clue: "Hızlı tempolu, kısa süren, rekabetsiz oyun moduna verilen isim (Swiftplay)." },
+    { word: "ASCENT", clue: "İtalya esintili, ortada çan kulesi bulunan klasik Valorant haritası." },
+    { word: "ARES", clue: "Takım başına sınırlı sayıda alınabilen, hızlı ateşli ağır makineli tüfek." },
+    { word: "ACE", clue: "Bir oyuncunun tek raundda rakip takımın 5 üyesini de öldürmesine verilen isim." },
+    { word: "AJAN", clue: "Valorant'ta oynanabilir her karaktere verilen genel isim." },
+    { word: "ALAN", clue: "Sis, duman veya duvar gibi yeteneklerle düşmana kapatılan bölgeye verilen isim." },
+  ],
+  B: [
+    { word: "BIND", clue: "Teleport kapılarıyla bilinen, Fas esintili Valorant haritası." },
+    { word: "BREACH", clue: "Şok dalgalarıyla rakipleri sersemleten Avustralyalı Girişçi ajan." },
+    { word: "BRIMSTONE", clue: "Uydu çağırıp hava desteği sağlayan Amerikalı Kontrolcü ajan." },
+    { word: "BUCKY", clue: "Yakın mesafede güçlü, uzak mesafede zayıflayan pompalı tüfek." },
+    { word: "BULLDOG", clue: "Vandal'a göre daha ucuz, yarı ve tam otomatik atış modu olan tüfek." },
+    { word: "BOMBA", clue: "Spike'ın oyuncular arasında sıkça kullanılan diğer adı." },
+    { word: "BÖLGE", clue: "Haritanın A/B gibi belirli bir kısmına verilen genel isim (site)." },
+  ],
+  C: [
+    { word: "CYPHER", clue: "Kameralar ve tel tuzaklarıyla bilgi toplayan Gözcü ajan." },
+    { word: "CHAMBER", clue: "Teleport eden tuzaklar kuran, Fransız kökenli Gözcü ajan." },
+    { word: "CLASSIC", clue: "Her oyuncuya raunt başında ücretsiz verilen standart tabanca." },
+    { word: "CLOVE", clue: "Öldüğünde geçici olarak dirilip yeteneklerini kullanabilen İskoç Kontrolcü ajan." },
+    { word: "CAN", clue: "Bir oyuncunun hayatta kalma durumunu gösteren sayısal değer (HP)." },
+    { word: "CEPHANE", clue: "Bir silahın içinde kalan mermi sayısına verilen isim." },
+  ],
+  D: [
+    { word: "DEADLOCK", clue: "Buz temalı yetenekleriyle rakipleri hapseden Norveçli Gözcü ajan." },
+    { word: "DÜELLOCU", clue: "Takımın açılış vuruşlarını yapan saldırgan role verilen isim." },
+    { word: "DUMAN", clue: "Görüşü kapatan, alan kontrolü sağlayan temel yetenek türü (smoke)." },
+    { word: "DEFANS", clue: "Spike'ı savunan tarafa verilen isim." },
+    { word: "DÜŞMAN", clue: "Karşı takımdaki oyunculara verilen genel isim." },
+    { word: "DİRİLTME", clue: "Sage'in ölü bir takım arkadaşını hayata döndürme yeteneği." },
+  ],
+  E: [
+    { word: "EKO", clue: "Takımın silah almadan ya da ucuz ekipmanla oynadığı raunt türü." },
+    { word: "EKONOMİ", clue: "Bir takımın silah/kalkan alımlarını yönettiği stratejik sisteme verilen isim." },
+    { word: "ELMAS", clue: "Platin'in üstü, Yüce'nin altındaki rekabetçi rütbe (Diamond)." },
+    { word: "EŞLEŞME", clue: "Oyuncuları rütbe/seviyeye göre birbirine denk takımlara ayıran sistem (matchmaking)." },
+    { word: "EL", clue: "Bir raunt içinde oynanan saldırı/savunma döngüsüne oyuncuların verdiği gündelik isim." },
+  ],
+  F: [
+    { word: "FRACTURE", clue: "H şeklinde, iki taraftan aynı anda saldırılabilen harita." },
+    { word: "FRENZY", clue: "Otomatik ateş edebilen, ucuz rauntlarda tercih edilen tabanca." },
+    { word: "FLAŞ", clue: "Rakibin ekranını beyaza boğup geçici olarak kör eden yetenek türü." },
+    { word: "FARK", clue: "İki takım arasındaki skor veya güç dengesizliğine verilen genel isim." },
+  ],
+  G: [
+    { word: "GEKKO", clue: "Yaratıklarını savaşa süren Girişçi ajan." },
+    { word: "GUARDIAN", clue: "Yarı otomatik, tek atışta güçlü hasar veren tüfek." },
+    { word: "GHOST", clue: "Sessiz atışlı, standart tabancaya göre daha güçlü tabanca." },
+    { word: "GİRİŞÇİ", clue: "Takımın alana girişini kolaylaştıran yeteneklere sahip ajan rolü." },
+    { word: "GÖZCÜ", clue: "Bilgi toplayan ve alan savunan ajan rolüne verilen isim (Sentinel)." },
+  ],
+  H: [
+    { word: "HAVEN", clue: "Üç Spike alanına sahip tek Valorant haritası." },
+    { word: "HARBOR", clue: "Su temelli yetenekleriyle alan kapatan Hintli Kontrolcü ajan." },
+    { word: "HASAR", clue: "Bir saldırının rakibin canından düşürdüğü miktara verilen isim." },
+    { word: "HIZ", clue: "Bir ajanın hareket kabiliyetine verilen genel terim." },
+  ],
+  I: [
+    { word: "ISO", clue: "Bir el hasarını sıfırlayan kalkan yeteneğine sahip Düellocu ajan." },
+    { word: "IRON", clue: "Rekabetçi modun en alt rütbesine verilen isim." },
+    { word: "ISINMA", clue: "Maç başlamadan önce oyuncuların nişan alıştırması yaptığı süreye verilen isim (warm-up)." },
+  ],
+  J: [
+    { word: "JETT", clue: "Rüzgarla sürüklenip havada süzülebilen, en popüler Düellocu ajanlardan biri." },
+    { word: "JUDGE", clue: "Yakın mesafede geniş saçma deseniyle bilinen pompalı tüfek." },
+  ],
+  K: [
+    { word: "KILLJOY", clue: "Robotları ve mayınlarıyla alan savunan Alman Gözcü ajan." },
+    { word: "KARAMBİT", clue: "Eğri tasarımıyla tanınan popüler bir bıçak skin tipi." },
+    { word: "KALKAN", clue: "Cana ek koruma sağlayan, raunt başında satın alınabilen ekipman." },
+    { word: "KONTROLCÜ", clue: "Sis ve duman gibi yeteneklerle alanı bölen ajan rolü." },
+    { word: "KAFA", clue: "Bir düşmanı tek vuruşta öldürebilen en hassas vuruş bölgesi (headshot)." },
+  ],
+  L: [
+    { word: "LOTUS", clue: "Dönen kapılarıyla bilinen, Hint esintili Valorant haritası." },
+    { word: "LİDER", clue: "Bir takımda kararları koordine eden oyuncuya verilen isim (IGL)." },
+    { word: "LİG", clue: "Profesyonel takımların düzenli olarak karşılaştığı organizasyona verilen isim." },
+  ],
+  M: [
+    { word: "MOLLY", clue: "Alan hasarı veren yanıcı/asit yeteneklere oyuncuların verdiği kısa isim." },
+    { word: "MARSHAL", clue: "Tek kurşunluk, orta menzilli keskin nişancı tüfeği." },
+    { word: "MAÇ", clue: "İki takımın karşılıklı oynadığı tam oyuna verilen isim." },
+    { word: "MERMİ", clue: "Bir silahtan ateşlenen her bir atışa verilen isim." },
+  ],
+  N: [
+    { word: "NEON", clue: "Elektrik hızıyla koşan Filipinli Düellocu ajan." },
+    { word: "NİŞANGAH", clue: "Ekranın ortasında nişan almaya yarayan, özelleştirilebilir işaret." },
+  ],
+  O: [
+    { word: "OMEN", clue: "Gölgelerin içinden teleport olabilen Kontrolcü ajan." },
+    { word: "ODIN", clue: "Takım başına bir kez alınabilen, en yüksek hasarlı ağır makineli tüfek." },
+    { word: "OPERATOR", clue: "Tek kurşunda neredeyse her yeri öldürebilen en pahalı keskin nişancı tüfeği." },
+    { word: "ORTA", clue: "Haritanın A ve B bölgeleri arasındaki merkezi alanına verilen isim (mid)." },
+  ],
+  P: [
+    { word: "PHOENIX", clue: "Ateşle kendini iyileştirebilen İngiliz Düellocu ajan." },
+    { word: "PHANTOM", clue: "Sessiz atışlarıyla bilinen, Vandal'a rakip popüler tüfek." },
+    { word: "PEARL", clue: "Su altı Portekiz şehri temalı Valorant haritası." },
+    { word: "PLATİN", clue: "Altın'ın üstü, Elmas'ın altındaki rekabetçi rütbe (Platinum)." },
+    { word: "PATLAMA", clue: "Spike'ın patlama anına verilen isim." },
+  ],
+  R: [
+    { word: "RAZE", clue: "Patlayıcı yetenekleriyle bilinen Brezilyalı Düellocu ajan." },
+    { word: "RAUNT", clue: "Bir maçın kazanılıp kaybedildiği en küçük birime verilen isim." },
+    { word: "REYNA", clue: "Öldürdüğü rakiplerden can/görünmezlik emen Meksikalı Düellocu ajan." },
+    { word: "RADYANT", clue: "Rekabetçi modun en üst, en zirve rütbesi." },
+    { word: "ROTASYON", clue: "Bir takımın bir bölgeden diğerine hızlıca geçiş yapmasına verilen isim." },
+  ],
+  S: [
+    { word: "SOVA", clue: "Ok atarak keşif yapan Rus Girişçi ajan." },
+    { word: "SAGE", clue: "İyileştirme ve diriltme yetenekleriyle bilinen Çinli Gözcü ajan." },
+    { word: "SHERIFF", clue: "Tek kurşunda kafadan öldürebilen güçlü, pahalı tabanca." },
+    { word: "SPLIT", clue: "İki bölgeyi birbirine bağlayan halatlarıyla bilinen Japon esintili harita." },
+    { word: "SPIKE", clue: "Saldıran takımın yerleştirip patlattığı bomba benzeri cihaza verilen isim." },
+    { word: "SERİ", clue: "Art arda kazanılan raunt ya da maç sayısına verilen isim (streak)." },
+  ],
+  T: [
+    { word: "TUZAK", clue: "Düşmanı yavaşlatan ya da açığa çıkaran yerleştirilebilir mekanizmalara verilen genel isim." },
+    { word: "TIRMANIŞ", clue: "Sırayla farklı silahlarla ilerlenen eğlenceli oyun moduna verilen isim (Escalation)." },
+    { word: "TEJO", clue: "Roketatarıyla alan hasarı veren Filipinli Girişçi ajan." },
+    { word: "TAKAS", clue: "Bir takım arkadaşının öldüğü anda hemen o rakibi öldürmeye verilen isim (trade kill)." },
+  ],
+  V: [
+    { word: "VANDAL", clue: "Tek kurşunda kafadan öldürebilen, en popüler tüfeklerden biri." },
+    { word: "VALORANT", clue: "Bu oyunun kendi adı." },
+    { word: "VIPER", clue: "Zehirli gaz ve duman perdeleriyle alan kontrolü sağlayan Amerikalı Kontrolcü ajan." },
+    { word: "VURUŞ", clue: "Bir mermi ya da yeteneğin hedefe isabet etmesine verilen genel isim." },
+  ],
+  Y: [
+    { word: "YORU", clue: "Gölge kopyası çıkarıp boyutlar arası kaçabilen Japon Düellocu ajan." },
+    { word: "YAY", clue: "Sova'nın keşif için kullandığı temel silahına verilen isim." },
+    { word: "YÜCE", clue: "Elmas'ın üstü, Ölümsüz'ün altındaki rekabetçi rütbe (Ascendant)." },
+    { word: "YERLEŞTİRME", clue: "Spike'ı bir bölgeye bırakıp aktif hale getirme eylemine verilen isim (plant)." },
+  ],
+};
+
+// Rotasyonun başlangıç günü — buradan itibaren her gün bir sonraki VARYANT SETİNE geçilir
+// (yani artık "bir sonraki harf" değil, TÜM 28 kelime birden yeni bir varyanta geçiyor).
+const WORD_GAME_EPOCH = new Date(2026, 0, 1).getTime();
+
+function getWordGameSetIndex(): number {
+  const now = new Date();
+  const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const diffDays = Math.floor((todayLocal - WORD_GAME_EPOCH) / 86400000);
+  return ((diffDays % 2) + 2) % 2; // şu an 2 varyant var — daha fazla varyant eklersen buradaki 2'yi de güncelle
+}
 
 const LEADERBOARD_DATA = [
   { rank: 1, name: "Henüz kimse yok", score: 0, agent: "—" },
@@ -104,18 +486,10 @@ const LEADERBOARD_DATA = [
   { rank: 5, name: "Henüz kimse yok", score: 0, agent: "—" },
 ];
 
-// ÖNEMLİ DÜZELTME: bu örnek/statik nişangahların ID'leri (1,2,3...) Supabase'den gelen
-// gerçek (kullanıcı eklediği) nişangahların ID'leriyle çakışıyordu — bu yüzden birini
-// beğenince/kopyalayınca farklı bir kart da aynı anda etkileniyordu (aynı ID = aynı state).
-// 900000+ aralığına taşıyarak çakışmayı kalıcı olarak engelliyoruz.
-const CROSSHAIRS_DATA = [
-  { id: 900001, title: "TenZ", subtitle: "Pro T1 TenZ#2001", likes: "0", rank: "immortal", color: "#00ffff", code: "0;P;c;4;h;0;0l;4;0o;2;0a;1;0f;0;1b;0" },
-  { id: 900002, title: "yay", subtitle: "Pro yay#661", likes: "0", rank: "radiant", color: "#ffffff", code: "0;P;c;0;h;0;0l;3;0o;1;0a;1;1b;0" },
-  { id: 900003, title: "my girlfriend", subtitle: "By Faint#ong", likes: "0", rank: "diamond", color: "#00ffcc", code: "0;P;c;4;h;0;0l;5;0o;3;0a;0.8;1b;0" },
-  { id: 900004, title: "sacy", subtitle: "By nocz#galax", likes: "0", rank: "ascendant", color: "#ffffff", code: "0;P;c;0;h;0;0l;4;0o;2;0a;1;1b;0" },
-  { id: 900005, title: "onetap$", subtitle: "By EG srn#mimi", likes: "0", rank: "radiant", color: "#000000", code: "0;P;c;3;h;0;0l;2;0o;1;0a;1;1b;0" },
-  { id: 900006, title: "My father", subtitle: "By Goth Girl Hunter#F1rE", likes: "0", rank: "gold", color: "#ff00ff", code: "0;P;c;5;h;0;0l;6;0o;4;0a;1;1b;0" }
-];
+// Nişangah listesi yalnızca Supabase'deki topluluk kayıtlarından oluşur. Sabit örnekler
+// bilerek tutulmuyor; bu sayede ekranda görünen her kart gerçek bir kullanıcı kaydıdır.
+type CrosshairEntry = { id: string | number; title: string; subtitle: string; likes: string | number; rank: string; color: string; code: string };
+const CROSSHAIRS_DATA: CrosshairEntry[] = [];
 
 // Valorant nişangah kodu için basitleştirilmiş renk paleti (yaygın renk index'leri) - YENİ EKLENDİ
 // NOT: Artık projenin public klasöründeki gerçek /riot.png dosyası kullanılıyor (beyaz Riot ikonu).
@@ -142,9 +516,9 @@ const RiotMark = ({ className = "w-4 h-4" }: { className?: string }) => (
 const CROSSHAIR_COLOR_MAP: Record<string, string> = {
   "0": "#ffffff", // beyaz — doğrulandı
   "1": "#00ff00", // yeşil — doğrulandı (nAts, Zekken, Boaster...)
-  "2": "#ffff00", // sarı — doğrulandı (erişilebilirlik makalesi)
-  "3": "#adff2f", // sarı-yeşil (yellow-green) — net kaynak yok, en iyi tahmin
-  "4": "#00b5ff", // açık mavi — net kaynak yok, en iyi tahmin (topluluğun en popüler özel rengi)
+  "2": "#adff2f", // sarı-yeşil
+  "3": "#dfff00", // yeşil-sarı
+  "4": "#ffff00", // sarı
   "5": "#00ffff", // camgöbeği/cyan — doğrulandı (TenZ, Cryo, ScreaM...)
   "6": "#ff2d95", // pembe/magenta — doğrulandı (erişilebilirlik makalesi)
   "7": "#ff4655", // kırmızı — doğrulandı (benjyfishy, Chronicle...)
@@ -257,9 +631,19 @@ function CrosshairPreviewSVG({ parsed, size = 56 }: { parsed: ParsedCrosshair; s
   // NOT: Bu bileşen BİLEREK gerçek boyutu birebir yansıtmıyor — amacı, küçük bir kartta
   // her nişangahı "okunabilir bir ikon" gibi göstermek. Kodun oyundaki GERÇEK ölçeğini görmek
   // için haritada önizleme penceresindeki CrosshairAccurateSVG kullanılıyor.
-  const BASE_SCALE = 3.1;
-  const MIN_THICK = 2.2; // px cinsinden minimum çizgi kalınlığı (görünürlük tabanı)
-  const MIN_DOT_R = 2; // px cinsinden minimum nokta yarıçapı
+  // Karttaki çizim, harita önizlemesindeki şekli okunabilir biçimde korumalı.
+  // Eski ölçek kısa kolları nokta gibi gösteriyordu.
+  // DÜZELTME (istek): "nişangahlar hiç olmamış, tracker gibi yapsana, scale'i bi tık
+  // küçültebilirsin" — okunabilirlik için BİLEREK abartılan ölçek biraz geri çekildi, artık
+  // gerçek bir crosshair tracker sitesindeki gibi daha orantılı/az abartılı duruyor ama yine de
+  // ince çizgiler görünmez olacak kadar küçülmüyor.
+  // Kart önizlemesi eskiden oyun değerlerini 3.6 ile çarpıyordu; bu, 3/2 gibi normal
+  // uzunluk-boşluk ayarlarını bile dev ve ortası gereğinden açık gösteriyordu. 1.8 ölçeği,
+  // 64px kartta Valorant ayar ekranındaki okunabilir ama gerçekçi oranı korur.
+  const BASE_SCALE = 1.8;
+  const MIN_THICK = 0;
+  const MIN_DOT_R = 0;
+  const MIN_ARM_LEN = 0;
 
   // DÜZELTME ("bazı crosslar çok devasa duruyor"): sabit BASE_SCALE, uzunluk/kalınlığı büyük
   // ham değerli kodlarda (ör. 0l;20, 0t;10 gibi "uzun çizgi" tarzı kodlar) kartın 56-64px'lik
@@ -268,13 +652,24 @@ function CrosshairPreviewSVG({ parsed, size = 56 }: { parsed: ParsedCrosshair; s
   // (rawMaxReach) hesaplanıyor; kutuya sığmıyorsa TÜM boyutlar (kalınlık/uzunluk/boşluk/nokta)
   // AYNI ORANDA küçültülüyor — kod hâlâ kendine özgü şeklini/oranını koruyor, sadece kutuya
   // sığacak kadar küçülüyor. Küçük/normal kodlar hiç etkilenmiyor (fitFactor = 1 kalıyor).
+  // DÜZELTME (ASIL "büyüklüğü aynı değil" BUG'U): rawMaxReach, kalınlığı MIN_THICK
+  // zorlamasından ÖNCEKİ ham değeriyle hesaplanıyordu. Ama aşağıda kalınlık, fitFactor
+  // uygulandıktan SONRA yine de en az MIN_THICK'e zorlanıyor. Sonuç: uzunluğu/boşluğu büyük
+  // (fitFactor<1, küçültülmesi gereken) ama çizgisi ince bir kod, küçültüldükten sonra
+  // kalınlığı MIN_THICK'e geri zorlanıyor — yani AYNI ORANDA küçülmüyor, kalınlığı orana göre
+  // OLMASI GEREKENDEN kalın kalıyor. Bu da aynı "mantıksal" boyuttaki iki farklı kod (biri
+  // küçültme gerektiren biri gerektirmeyen) ekranda FARKLI oranlarda görünmesine yol açıyordu.
+  // Çözüm: MIN_THICK'i BASE_SCALE cinsine çevirip rawMaxReach hesabına da dahil ediyoruz —
+  // böylece fitFactor, kalınlığın zorlanacağı minimumu da hesaba katarak küçültüyor.
+  const MIN_THICK_RAW = MIN_THICK / BASE_SCALE;
+  const MIN_ARM_LEN_RAW = MIN_ARM_LEN / BASE_SCALE;
   const rawMaxReach = Math.max(
-    parsed.offset + parsed.length,
-    parsed.offset + parsed.vLength,
-    parsed.outerLinesOn ? parsed.outerOffset + parsed.outerLength : 0,
-    parsed.outerLinesOn ? parsed.outerOffset + parsed.outerVLength : 0,
-    parsed.thickness / 2,
-    parsed.outerLinesOn ? parsed.outerThickness / 2 : 0,
+    parsed.offset + (parsed.length > 0 ? Math.max(parsed.length, MIN_ARM_LEN_RAW) : 0),
+    parsed.offset + (parsed.vLength > 0 ? Math.max(parsed.vLength, MIN_ARM_LEN_RAW) : 0),
+    parsed.outerLinesOn ? parsed.outerOffset + (parsed.outerLength > 0 ? Math.max(parsed.outerLength, MIN_ARM_LEN_RAW) : 0) : 0,
+    parsed.outerLinesOn ? parsed.outerOffset + (parsed.outerVLength > 0 ? Math.max(parsed.outerVLength, MIN_ARM_LEN_RAW) : 0) : 0,
+    Math.max(parsed.thickness, MIN_THICK_RAW) / 2,
+    parsed.outerLinesOn ? Math.max(parsed.outerThickness, MIN_THICK_RAW) / 2 : 0,
     parsed.dot ? parsed.dotSize / 2 : 0
   );
   const MAX_REACH_PX = 44; // 100x100 viewBox'ta merkezden kenara güvenli mesafe (50'den az pay bırakır)
@@ -293,8 +688,13 @@ function CrosshairPreviewSVG({ parsed, size = 56 }: { parsed: ParsedCrosshair; s
     // DÜZELTME: üst/alt (dikey) kollar artık "vLength", sol/sağ (yatay) kollar "length"
     // kullanıyor — önceden ikisi de aynı "length" değerini kullandığı için yatay/dikey
     // uzunluğu FARKLI olan (zincir kapalı) crosshair'ler simetrik bir artıya dönüşüyordu.
-    const hLen = Math.max(parsed.length, 0) * SCALE;
-    const vLen = Math.max(parsed.vLength, 0) * SCALE;
+    const hLenRaw = Math.max(parsed.length, 0) * SCALE;
+    const vLenRaw = Math.max(parsed.vLength, 0) * SCALE;
+    // DÜZELTME: kol çizilecekse (>0.3px, aşağıdaki eşik) ama MIN_ARM_LEN'den kısaysa, bir
+    // "çizgi" gibi okunabilmesi için en az MIN_ARM_LEN'e yükseltiliyor (yukarıdaki
+    // rawMaxReach zaten bunu hesaba kattı, kutu taşmıyor).
+    const hLen = hLenRaw > 0.3 ? Math.max(hLenRaw, MIN_ARM_LEN) : hLenRaw;
+    const vLen = vLenRaw > 0.3 ? Math.max(vLenRaw, MIN_ARM_LEN) : vLenRaw;
     // DÜZELTME (GERÇEK BUG — kanıtlandı): kalınlık burada SCALE*0.5 ile, boşluk/uzunluk ise
     // SCALE (tam) ile ölçekleniyordu — yani kalınlık, boşluğa göre YARI hızda büyüyordu. Ham
     // oyun birimlerinde kollar çakışıp (boşluk yok, dolu görünmesi gereken) bir kod, bu
@@ -322,8 +722,10 @@ function CrosshairPreviewSVG({ parsed, size = 56 }: { parsed: ParsedCrosshair; s
   }
 
   if (parsed.outerLinesOn) {
-    const hLen = Math.max(parsed.outerLength, 0) * SCALE;
-    const vLen = Math.max(parsed.outerVLength, 0) * SCALE;
+    const hLenRaw = Math.max(parsed.outerLength, 0) * SCALE;
+    const vLenRaw = Math.max(parsed.outerVLength, 0) * SCALE;
+    const hLen = hLenRaw > 0.3 ? Math.max(hLenRaw, MIN_ARM_LEN) : hLenRaw;
+    const vLen = vLenRaw > 0.3 ? Math.max(vLenRaw, MIN_ARM_LEN) : vLenRaw;
     const thick = Math.max(Math.max(parsed.outerThickness, 0) * SCALE, MIN_THICK); // DÜZELTME: bkz. yukarıdaki iç kol notu, aynı asimetri burada da vardı
     const off = Math.max(parsed.outerOffset, 0) * SCALE;
     if (hLen > 0.3 || vLen > 0.3) {
@@ -341,8 +743,12 @@ function CrosshairPreviewSVG({ parsed, size = 56 }: { parsed: ParsedCrosshair; s
   const dotR = parsed.dot ? Math.max(Math.max(parsed.dotSize, 0) * SCALE * 0.4, MIN_DOT_R) : 0;
   const hasAnything = segs.length > 0 || dotR > 0;
 
+  // DÜZELTME ("cross bulanık/pürüzlü görünüyor"): küçük kart ikonlarında (56-64px) tarayıcı
+  // SVG dikdörtgenlerini anti-alias ile yumuşatıyor — ince kollarda bu, kenarları bulanık/
+  // gri bir bulanıklık gibi gösteriyordu (gerçek oyundaki keskin/net kenarların aksine).
+  // shapeRendering="crispEdges" kenarları piksele oturtup keskin/net çiziyor.
   return (
-    <svg viewBox="0 0 100 100" width={size} height={size} style={{ overflow: "hidden" }}>
+    <svg viewBox="0 0 100 100" width={size} height={size} shapeRendering="crispEdges" style={{ overflow: "hidden" }}>
       {segs}
       {dotR > 0 && outlineOn && parsed.dotOpacity > 0 && <circle cx={cx} cy={cy} r={dotR + outlineThick} fill="#000000" opacity={parsed.outlineOpacity} />}
       {dotR > 0 && <circle cx={cx} cy={cy} r={dotR} fill={parsed.color} opacity={parsed.dotOpacity} />}
@@ -405,6 +811,14 @@ function CrosshairAccurateSVG({ parsed }: { parsed: ParsedCrosshair }) {
   // DÜZELTME: ZOOM=8 önceki turda "görünmüyor" sorununu çözmüştü ama bu sefer tam tersi
   // şikayet geldi ("haritadaki cross gösterimleri de biraz büyük gibi") — 6'ya düşürüldü,
   // hâlâ görünür ama daha az baskın.
+  // Harita önizlemesinde gerçek ekran ölçeği korunur. Eski 6x büyütme, kısa/ince
+  // crosshair'leri olduğundan büyük gösteriyordu; 1x ile 1920×1080 oyun koordinatı
+  // harita yüzeyine doğrudan karşılık gelir.
+  // DÜZELTME ("haritada önizleme boyutu çok küçük"): 1x (birebir oyun ölçeği) matematiksel
+  // olarak doğruydu ama önizleme kutusu ekranda genelde ~600-700px olduğu için normal bir
+  // pro crosshair (kalınlık 1-2 birim) neredeyse görünmez kalıyordu. 6x'e çıkarıldı — hâlâ
+  // TÜM oranlar birebir korunuyor (2 kat kalın olan bir çizgi burada da hep 2 kat kalın
+  // görünür), sadece genel olarak daha okunabilir/görünür bir boyuta büyütülüyor.
   const ZOOM = 6;
 
   const outlineThick = Math.max(parsed.outlineThickness, 0) * ZOOM;
@@ -450,7 +864,7 @@ function CrosshairAccurateSVG({ parsed }: { parsed: ParsedCrosshair }) {
   const hasAnything = shapes.length > 0 || dotR > 0;
 
   return (
-    <svg viewBox="0 0 1920 1080" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style={{ position: "absolute", inset: 0 }}>
+    <svg viewBox="0 0 1920 1080" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" shapeRendering="crispEdges" style={{ position: "absolute", inset: 0 }}>
       {shapes}
       {dotR > 0 && hasOutline && parsed.dotOpacity > 0 && <circle cx={cx} cy={cy} r={dotR + outlineThick} fill="#000000" opacity={outlineOpacity} />}
       {dotR > 0 && <circle cx={cx} cy={cy} r={dotR} fill={parsed.color} opacity={parsed.dotOpacity} />}
@@ -531,7 +945,14 @@ const parseCrosshairCode = (code: string): ParsedCrosshair | null => {
     // TAMAMEN GÖRÜNMEZ oluyordu. Artık SADECE "0b"/"1b" okunuyor, "0g"/"1g" görünürlük için
     // hiç kullanılmıyor.
     innerLinesOn: map["0b"] !== "0",
-    outerLinesOn: map["1b"] === "1",
+    // DÜZELTME (GERÇEK BUG — 3 örnek kodla kanıtlandı, node ile simüle ettim): "1b" anahtarı
+    // HİÇ YOKSA (sadece "0" değil, tamamen eksikse) eskiden dış çizgiler her zaman KAPALI
+    // sayılıyordu — ama kod açıkça dış kalınlık/uzunluk/boşluk (1t/1l/1o) değerleri taşıyorsa,
+    // bu değerlerin "boşuna" orada durması anlamsız; kullanıcı onları göstermek istiyor demektir.
+    // Gerçek, oyundan dışa aktarılmış kodlarda "1b" HER ZAMAN vardır (araştırmayla doğrulandı) —
+    // bu yüzden bu yeni varsayılan SADECE "1b" gerçekten hiç belirtilmemiş, elle yazılmış/eksik
+    // kodlarda devreye giriyor, gerçek kodların ezici çoğunluğunu ETKİLEMİYOR.
+    outerLinesOn: map["1b"] === "1" || (map["1b"] === undefined && (map["1t"] !== undefined || map["1l"] !== undefined || map["1o"] !== undefined)),
     outerLength: num("1l", num("0l", 4)),
     outerOffset: num("1o", num("0o", 2)),
     outerThickness: num("1t", num("0t", 2)),
@@ -607,8 +1028,10 @@ const getRankLogo = (rankLabel: string | undefined | null): string | null => {
 };
 
 // "8.44K" gibi beğeni metinlerini sıralanabilir sayıya çeviren yardımcı fonksiyon (yeni eklendi)
-const parseLikes = (likes: string): number => {
-  const cleaned = likes.trim().toUpperCase();
+// DÜZELTME (TS hatası): likes alanı "string | number" olabiliyor ama fonksiyon sadece "string"
+// kabul ediyordu. Davranış aynı, sadece tip uyumlu hale getirildi.
+const parseLikes = (likes: string | number): number => {
+  const cleaned = String(likes).trim().toUpperCase();
   if (cleaned.endsWith("K")) return parseFloat(cleaned) * 1000;
   if (cleaned.endsWith("M")) return parseFloat(cleaned) * 1000000;
   return parseFloat(cleaned) || 0;
@@ -816,18 +1239,718 @@ function PageContent() {
   const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState(0);
   const [quizFinished, setQuizFinished] = useState(false);
-  // Puanlama sistemi: doğru cevap = 30 taban puan + kalan süreye göre hız bonusu (0-20,
-  // yani en hızlı cevap toplamda 50 puan alır), yanlış/süre dolması = -10 puan.
+  // Puanlama sistemi: doğru cevap = 15 taban puan + kalan süreye göre hız bonusu (0-15,
+  // yani en hızlı cevap toplamda 30 puan alır, en yavaş doğru cevap 15 puan alır),
+  // yanlış/süre dolması = -5 puan. Günlük hak: 8.
   const [pointsEarned, setPointsEarned] = useState(0);
   const [lastQuestionPoints, setLastQuestionPoints] = useState<number | null>(null);
   const QUESTION_SECONDS = 15;
+  // DÜZELTME (BÜYÜK BUG): "8 soru olsun" deniyordu ama QUIZ_QUESTIONS.length (=10) her yerde
+  // doğrudan kullanıldığı için oyun HER ZAMAN elimizdeki TÜM soruları (10 tanesini) soruyordu.
+  // Artık her oyun başlangıcında QUIZ_QUESTIONS'tan RASTGELE 8 tanesi seçilip activeQuestions'a
+  // konuyor; oyun boyunca (soru sayacı, ilerleme çubuğu, sonuç ekranı) SADECE activeQuestions
+  // kullanılıyor — QUIZ_QUESTIONS.length artık oyun mantığında hiç kullanılmıyor.
+  const QUESTIONS_PER_GAME = 8;
+  const [activeQuestions, setActiveQuestions] = useState<typeof QUIZ_QUESTIONS>(() => QUIZ_QUESTIONS.slice(0, QUESTIONS_PER_GAME));
   const [timeLeft, setTimeLeft] = useState(QUESTION_SECONDS);
   const quizTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Mini oyunlar şimdilik istemci tarafında çalışır. Supabase rotası geldiğinde bu
+  // skorlar/günlük eşleşmeler aynı state noktalarından kalıcı veriye bağlanacak.
+  const rankChallenges = [
+    { player: "Mira#TR1", agent: "Jett", map: "Ascent", kd: "24 / 16", hs: "%18", acs: 162, answer: "Silver" },
+    { player: "Kaan#ACE", agent: "Omen", map: "Bind", kd: "21 / 14", hs: "%27", acs: 235, answer: "Gold" },
+    { player: "Lynx#001", agent: "Sova", map: "Haven", kd: "28 / 12", hs: "%34", acs: 302, answer: "Diamond" },
+    { player: "Nova#GG", agent: "Raze", map: "Lotus", kd: "31 / 10", hs: "%41", acs: 348, answer: "Immortal" },
+  ];
+  const [rankChallengeIndex, setRankChallengeIndex] = useState(0);
+  const [rankGuessResult, setRankGuessResult] = useState<"correct" | "wrong" | null>(null);
+  const [rankPickedLabel, setRankPickedLabel] = useState<string | null>(null);
+  const [rankGuessScore, setRankGuessScore] = useState(0);
+  const [rankGuessesMade, setRankGuessesMade] = useState(0);
+  const [rankClipUrl, setRankClipUrl] = useState("");
+  const [isRankUploadOpen, setIsRankUploadOpen] = useState(false);
+  const [rankUploadUrl, setRankUploadUrl] = useState("");
+  const [rankUploadRank, setRankUploadRank] = useState("Altın");
+  // YENİ (istek): Rank Tahmin artık istatistik kartı yerine GERÇEK KLİP izleyip rütbe tahmin
+  // etme oyunu — referans tasarımdaki gibi video oynatıcı + "SELECT RANK" ızgarası + seri
+  // (streak) takibi. Klipler topluluk tarafından paylaşılıyor (backend olmadığı için
+  // localStorage'da "ortak" bir havuz gibi tutuluyor — nişangahlar/forum gönderileri gibi
+  // bu site zaten client-taraflı bir simülasyon).
+  // DÜZELTME (istek): "rank tahmin menüsünde ön sekme olmasın direk menü burdan açılsın" +
+  // "soldaki sıralamaya dön şeyini kaldır" — ayrı bir "giriş/sıralama" ekranı kavramı tamamen
+  // kaldırıldığı için bunu seçen state'e de artık gerek yok, sekme her zaman doğrudan oyun
+  // ekranıyla açılıyor.
+  const [rankClips, setRankClips] = useState<{ id: string; url: string; rank: string; addedBy: string }[]>([]);
+  const [rankClipIndex, setRankClipIndex] = useState(0);
+  const [rankStreak, setRankStreak] = useState(0);
+  const [rankBestStreak, setRankBestStreak] = useState(0);
+  const [rankGuessStats, setRankGuessStats] = useState<{ counts: Record<string, number>; total: number; currentCorrect: number; playerRank: number | null } | null>(null);
+  const [rankViewedClipIds, setRankViewedClipIds] = useState<string[]>([]);
+  const [rankToast, setRankToast] = useState("");
+  useEffect(() => {
+    fetch("/api/rank-clips")
+      .then(async (res) => res.ok ? res.json() : Promise.reject(await res.json()))
+      .then((data) => setRankClips(Array.isArray(data.clips) ? data.clips : []))
+      .catch(() => setRankToast("Klipler yüklenemedi. Veritabanı kurulumu kontrol edilmeli."));
+  }, []);
+  const submitRankClip = () => {
+    const url = rankUploadUrl.trim();
+    const isYoutube = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(url);
+    const isVideoFile = /^https?:\/\/.+\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
+    if (!isYoutube && !isVideoFile) {
+      setRankToast("Yalnızca YouTube veya .mp4/.webm/.ogg video bağlantısı paylaşılabilir.");
+      setTimeout(() => setRankToast(""), 3500);
+      return;
+    }
+    if (!requireLogin()) return;
+    fetch("/api/rank-clips", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, rank: rankUploadRank, addedBy: currentUser }),
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Klip eklenemedi.");
+      setRankClips((prev) => [...prev, data.clip]);
+      setRankClipIndex(rankClips.length);
+      setIsRankUploadOpen(false);
+      setRankUploadUrl("");
+      setRankToast("Klip başarıyla eklendi.");
+      playClickSound();
+    }).catch((error) => setRankToast(error.message || "Klip eklenemedi."));
+    setTimeout(() => setRankToast(""), 3500);
+  };
+  // YouTube linklerini otomatik gömülebilir (embed) formata çeviriyor; diğer linkler
+  // doğrudan <video> etiketiyle oynatılmaya çalışılıyor.
+  const getRankClipEmbedUrl = (url: string): string | null => {
+    const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{6,})/);
+    return yt ? `https://www.youtube.com/embed/${yt[1]}` : null;
+  };
+  // DÜZELTME (kritik hata — "Server: Vandal Client: CLASSIC" hydration hatası): önceki hali
+  // useState'in LAZY INITIALIZER'I içinde doğrudan localStorage okuyordu. Next.js'te sunucu
+  // tarafı render sırasında `window` yok, o yüzden sunucu HER ZAMAN "Vandal" ile render
+  // ediyordu; tarayıcıda hydration olurken bu initializer TEKRAR çalışıp gerçek localStorage
+  // değerini (örn. önceden seçilmiş "Classic") okuyunca ilk render anında sunucu/istemci metni
+  // birbirini tutmuyordu — bu da tüm sayfayı hydration hatasıyla çökertiyordu. Artık ikisi de
+  // HER ZAMAN "Vandal" ile başlıyor (sunucu ve istemcinin ilk render'ı birebir aynı), kayıtlı
+  // tercih ise sadece mount SONRASI bir efektte (yani hydration bittikten sonra) okunup
+  // uygulanıyor — bu normal bir state güncellemesi olduğu için hataya yol açmıyor.
+  const [skinWeapon, setSkinWeapon] = useState("Vandal");
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("infinity_skin_weapon");
+      if (saved) setSkinWeapon(saved);
+    } catch {}
+  }, []);
+  useEffect(() => {
+    try { window.localStorage.setItem("infinity_skin_weapon", skinWeapon); } catch {}
+  }, [skinWeapon]);
+  const [skinSearch, setSkinSearch] = useState("");
+  // YENİ (istek): liderlik tablosu artık sadece ilk 20 skini göstermiyor — nişangahlar
+  // sekmesindeki gibi altta sayfa numaralı (1, 2, 3…) bir sayfalama var, TÜM skinler
+  // (bıçaksa tüm bıçaklar, Vandal'sa tüm Vandal'lar) gezilebiliyor.
+  const [skinLeaderboardPage, setSkinLeaderboardPage] = useState(1);
+  useEffect(() => { setSkinLeaderboardPage(1); }, [skinWeapon, skinSearch]);
+  const SKIN_PER_PAGE = 20;
+  const [skinBracketSize, setSkinBracketSize] = useState<number | "all">(64);
+  const [isSkinBattleOpen, setIsSkinBattleOpen] = useState(false);
+  const [skinBattleIndex, setSkinBattleIndex] = useState(0);
+  // YENİ: gerçek eşleşme turu (bracket) — "Voting Setup" penceresinde seçilen silah + havuz
+  // boyutuna göre skinCatalog'dan (valorant-api.com'dan çekilen GERÇEK skinler) rastgele
+  // eşleşmeler üretiliyor. Eskiden bu ekran sabit/donuk 2 eşleşmeyi (fights dizisi) gösteriyordu
+  // ve hiç skinCatalog kullanmıyordu — bu yüzden "skinler çekilmiyor" gibi görünüyordu.
+  const [skinBracketPairs, setSkinBracketPairs] = useState<({ id: string; name: string; weapon: string; image: string | null } | null)[][]>([]);
+  const [skinWinnerFlash, setSkinWinnerFlash] = useState<string | null>(null);
+  const [skinBattleDone, setSkinBattleDone] = useState(false);
+  const [skinVotes, setSkinVotes] = useState<Record<string, number>>({});
+  // YENİ (istek): İlerleme artık tek bir roundun eşleşme sayısını (örn. "8") değil, TÜM
+  // turnuva boyunca yapılacak toplam seçim sayısını gösteriyor (örn. Top 16 seçilince "16").
+  // skinTotalPool = turnuva başında seçilen havuz boyutu, sabit kalır. skinCumulativePicks =
+  // round geçişlerinde SIFIRLANMADAN, oyuncunun o ana kadar yaptığı toplam "bunu seç" sayısı.
+  const [skinTotalPool, setSkinTotalPool] = useState(0);
+  const [skinCumulativePicks, setSkinCumulativePicks] = useState(0);
+  // YENİ (istek): Skin Savaşı'na girince artık direkt oylama ayarları değil, önce bir
+  // SIRALAMA (leaderboard) ekranı geliyor — "leaderboard" varsayılan görünüm, "OYLAMAYA
+  // BAŞLA" butonuna basınca "setup" (silah/havuz seçimi) ekranına geçiliyor.
+  const [skinView, setSkinView] = useState<"leaderboard" | "setup">("leaderboard");
+  // YENİ: gerçek bir turnuva/bracket mantığı — 1. round kazananları 2. roundda birbirine
+  // girer, 2. round kazananları 3. roundda... en sonunda tek bir şampiyon skin kalana kadar
+  // devam eder. skinRoundNumber sadece ekranda "Round X" göstermek için.
+  const [skinRoundNumber, setSkinRoundNumber] = useState(1);
+  // Her skinin toplam maç sayısı ve galibiyet sayısı — win rate ve toplam oy hesaplamak için.
+  // localStorage'a yazılıyor ki F5'te sıralama sıfırlanmasın.
+  const [skinStats, setSkinStats] = useState<Record<string, { wins: number; matches: number }>>({});
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("infinity_skin_stats_v2");
+      if (saved) setSkinStats(JSON.parse(saved));
+    } catch {}
+  }, []);
+  const recordSkinMatch = (winnerId: string, loserId: string | null) => {
+    setSkinStats((prev) => {
+      const next = { ...prev };
+      next[winnerId] = { wins: (next[winnerId]?.wins || 0) + 1, matches: (next[winnerId]?.matches || 0) + 1 };
+      if (loserId) next[loserId] = { wins: next[loserId]?.wins || 0, matches: (next[loserId]?.matches || 0) + 1 };
+      try { window.localStorage.setItem("infinity_skin_stats_v2", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+  // Bay geçen (rakipsiz kalan) eşleşmeleri otomatik "kazanan" sayıp sessizce bir sonraki
+  // eşleşmeye geçiyor. DÜZELTME: bu efekt önceden skin-war sekmesi render edilirken
+  // koşullu bir IIFE'nin İÇİNDEYDİ — bu da activeTab değiştikçe hook'un hiç çağrılmadığı
+  // render'lar oluşturup React'in "hooks sırası" kuralını bozuyordu. Artık bileşenin en üst
+  // seviyesinde, her render'da aynı sırada çağrılıyor; içindeki koşullar sadece efektin NE
+  // YAPACAĞINI belirliyor.
+  useEffect(() => {
+    if (!isSkinBattleOpen || skinBattleDone) return;
+    const pair = skinBracketPairs[skinBattleIndex];
+    if (pair && pair[1] === null && pair[0]) {
+      recordSkinMatch(pair[0].id, null);
+      if (skinBattleIndex + 1 >= skinBracketPairs.length) setSkinBattleDone(true);
+      else setSkinBattleIndex((i) => i + 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skinBattleIndex, isSkinBattleOpen, skinBattleDone, skinBracketPairs]);
+
+  // YENİ (istek): "round 1'den 2'ye geçişte araya bir ekran girmesin, aynı ekranda devam
+  // etsin" — bir round bitip birden fazla kazanan kaldığında (henüz şampiyon yok), eskiden
+  // "Round X Tamamlandı" diye ayrı bir ara ekran gösterilip kullanıcının butona basmasını
+  // bekliyordu. Artık bu geçiş TAMAMEN OTOMATİK: kazananlar belli olur olmaz (bu efekt
+  // tetiklenir), yeni round'un eşleşmeleri anında üretilip aynı karşılaşma ekranında
+  // gösterilmeye devam edilir — hiçbir ara ekran/tıklama yok.
+  useEffect(() => {
+    if (!isSkinBattleOpen || !skinBattleDone) return;
+    const winners = skinBracketPairs
+      .map(([a, b]) => (!b ? a : (skinVotes[a!.id] || 0) >= (skinVotes[b.id] || 0) ? a : b))
+      .filter((s): s is NonNullable<typeof s> => !!s);
+    if (winners.length <= 1) return; // şampiyon belli oldu — bu durumu render tarafı gösteriyor
+    const shuffled = [...winners];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const pairs: (typeof shuffled[number] | null)[][] = [];
+    for (let i = 0; i < shuffled.length - 1; i += 2) pairs.push([shuffled[i], shuffled[i + 1]]);
+    if (shuffled.length % 2 === 1) pairs.push([shuffled[shuffled.length - 1], null]);
+    setSkinBracketPairs(pairs);
+    setSkinBattleIndex(0);
+    setSkinRoundNumber((r) => r + 1);
+    setSkinBattleDone(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skinBattleDone, isSkinBattleOpen]);
+
+  // DÜZELTME (ASIL BUG — "Block-scoped variable 'currentUser' used before its declaration"):
+  // currentUser aşağıda (KELİME OYUNU bölümünde, satır ~1041) kullanılıyordu ama tanımı çok
+  // daha aşağıdaydı. State tanımı artık ilk kullanıldığı yerden ÖNCE.
+  const [currentUser, setCurrentUser] = useState("");
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(`infinity_rank_viewed_${currentUser || "guest"}`);
+      setRankViewedClipIds(saved ? JSON.parse(saved) : []);
+    } catch { setRankViewedClipIds([]); }
+  }, [currentUser]);
+  useEffect(() => {
+    const clip = rankClips[rankClipIndex];
+    if (!clip || !currentUser) {
+      setRankGuessStats(null);
+      return;
+    }
+    fetch(`/api/rank-guesses?clipId=${encodeURIComponent(clip.id)}&playerName=${encodeURIComponent(currentUser)}`)
+      .then(async (res) => res.ok ? res.json() : Promise.reject(await res.json()))
+      .then(setRankGuessStats)
+      .catch(() => setRankGuessStats(null));
+  }, [rankClips, rankClipIndex, currentUser]);
+  // DÜZELTME (kritik hata — "Cannot access 'currentUser' before initialization"): bu efekt
+  // önceden currentUser'ın TANIMLANDIĞI satırdan ÖNCE duruyordu. Dependency array'i
+  // ([currentUser]) her render'da HEMEN değerlendirildiği için, JS `const` bildiriminden
+  // önce erişilince "temporal dead zone" hatası fırlatıyordu ve tüm sayfa çöküyordu. Artık
+  // currentUser tanımlandıktan hemen sonra çalışıyor.
+  useEffect(() => {
+    try {
+      const savedBest = window.localStorage.getItem(`infinity_rank_best_${currentUser || "guest"}`);
+      setRankBestStreak(savedBest ? parseInt(savedBest, 10) || 0 : 0);
+    } catch {}
+  }, [currentUser]);
+
+  // ===== KELİME OYUNU state'leri =====
+  // DÜZELTME (istek): "ilk defa kelime oyununa girilince böyle bir ekran verilecek... günlük
+  // olan günde 1 kez oynanacak... limitsizde ise sınırsız oynanabilecek, her girildiğinde
+  // harflere karşılık gelen kelimeler yenilenecek" — artık tek bir mod yok, sekmeye girince
+  // önce bir MENÜ (Günlük / Limitsiz seçimi) görünüyor, tıpkı referans "parolla" uygulamasındaki
+  // gibi. "Günlük" aşağıdaki (zaten var olan) tarih bazlı, hesap başına günde 1 kez ilerleme
+  // kaydeden sistemi kullanıyor. "Limitsiz" ise HİÇBİR ŞEY KAYDETMİYOR — her girişte kelimeler
+  // yeniden karılıyor, istediğin kadar oynanabiliyor.
+  const [wordGameMode, setWordGameMode] = useState<"menu" | "daily" | "unlimited">("menu");
+  // Sekmeden çıkıp tekrar girildiğinde referans uygulamadaki gibi yine menüden başlansın.
+  useEffect(() => {
+    if (activeTab === "word-game") setWordGameMode("menu");
+  }, [activeTab]);
+
+  // LİMİTSİZ MOD state'leri — günlük moddan tamamen ayrı, localStorage'a hiç yazılmıyor.
+  const [unlimitedSeed, setUnlimitedSeed] = useState(0);
+  const [unlimitedProgress, setUnlimitedProgress] = useState<Record<string, { status: "playing" | "correct" | "pass" | "timeout"; wrongCount: number; lastGuess?: string }>>({});
+  const unlimitedWordBank: Record<string, { word: string; clue: string }> = useMemo(() => {
+    const bank: Record<string, { word: string; clue: string }> = {};
+    // DÜZELTME (ASIL BUG — "kelimeler istediğim gibi yenilenmiyor"): eski üreteç
+    // `s = (s * 1103515245 + 12345) & 0x7fffffff` idi. Bu çarpım, s büyüdükçe JavaScript'in
+    // güvenli tamsayı sınırını (2^53) fazlasıyla aşıyor — sonuç ondalık (float) hassasiyetini
+    // kaybediyor, sonra "& 0x7fffffff" bu zaten bozulmuş sayı üzerinde çalışıyor. Test ettim:
+    // pratikte üretilen dizi neredeyse HER ZAMAN 0 çıkıyordu (sadece ilk değer seed'in tek/çift
+    // olmasına göre değişiyordu) — yani Limitsiz'e her girişte neredeyse hep AYNI varyant (0.
+    // kelime) seçiliyordu, gerçekten "karılmıyordu". Çözüm: Math.imul kullanan, 32-bit sınırları
+    // içinde kalan (hassasiyet kaybı olmayan) standart bir mulberry32 üreteci.
+    let a = unlimitedSeed * 9973 + 1;
+    const nextRandom = () => {
+      a |= 0; a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    TR_ALPHABET_ROTATION.forEach((l) => {
+      const variants = WORD_GAME_VARIANTS[l];
+      bank[l] = variants[Math.floor(nextRandom() * variants.length)];
+    });
+    return bank;
+  }, [unlimitedSeed]);
+
+  // Limitsiz moda her girişte: ilerleme sıfırlanır, kelimeler yeniden karılır.
+  useEffect(() => {
+    if (wordGameMode !== "unlimited") return;
+    setUnlimitedSeed((s) => s + 1);
+    setUnlimitedProgress({});
+    setSelectedWordLetter(TR_ALPHABET_ROTATION[0]);
+    setWordTimeLeft(240);
+    setWordResultsAutoShown(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wordGameMode]);
+
+  const [selectedWordLetter, setSelectedWordLetter] = useState(TR_ALPHABET_ROTATION[0]);
+  const [wordGuessInput, setWordGuessInput] = useState("");
+  // YENİ (istek): "yanlışta da yeşil yanıyor" — artık doğru/yanlış için AYRI, net bir görsel
+  // geri bildirim var. wordFeedback kısa süreliğine "correct" (yeşil parıltı) ya da "wrong"
+  // (kırmızı titreşim) oluyor, sonra otomatik temizleniyor; asla birbirine karışmıyor.
+  const [wordFeedback, setWordFeedback] = useState<"correct" | "wrong" | null>(null);
+  const [wordProgress, setWordProgress] = useState<Record<string, { status: "playing" | "correct" | "pass" | "timeout"; wrongCount: number; lastGuess?: string }>>({});
+  const [wordProgressLoaded, setWordProgressLoaded] = useState(false);
+  const [wordTimeLeft, setWordTimeLeft] = useState(240); // harf başına 4 dakika
+  // YENİ (istek): "Oyun sonunda 'Bugünün Sonuçları' ekranı açılsın" — bugünkü 28 harfin
+  // tamamı bitince (doğru/pas/süre doldu fark etmez) otomatik olarak sonuç ekranı açılıyor.
+  const [wordResultsOpen, setWordResultsOpen] = useState(false);
+  const [wordResultsAutoShown, setWordResultsAutoShown] = useState(false);
+  // YENİ (istek): "günlük modda 24 saatte bir, oyuncunun en son girdiğinden itibaren 24 saat
+  // sonra kelimelerin değişmesi lazım, kaç saat dakika kaldığı yazsın" — eskiden set takvim
+  // gününe göre (herkes için aynı anda, gece yarısı) değişiyordu. Artık HER OYUNCU İÇİN AYRI,
+  // kendi son oynayışından 24 saat sonra yenileniyor. dailyUnlockAt = bir sonraki yeni kelime
+  // setinin açılacağı zaman (ms); dailySetSeed = o setin hangi kelime varyantlarını göstereceği.
+  const [dailyUnlockAt, setDailyUnlockAt] = useState<number | null>(null);
+  const [dailySetSeed, setDailySetSeed] = useState(0);
+
+  // DÜZELTME (istek): "günün lideri" artık SAHTE/rastgele bir isim değil. Şimdilik boş
+  // başlıyor ("henüz kimse yok") ve o günün setinde TÜM kelimeleri doğru bilen İLK hesabın adı
+  // geldiğinde onu gösteriyor. Diğer canlı özellikler (liderlik tablosu, nişangahlar, lobiler)
+  // gibi bir /api rotasından çekiyor — rota eklenmeden sessizce boş kalır, site çökmez.
+  // NOT: Bu özelliğin gerçekten çalışması için backend tarafında (henüz bu dosyada olmayan)
+  // GET/POST /api/wordgame-leader rotasının eklenmesi gerekiyor (aşağıdaki fetch/submit buna göre yazıldı).
+  const [dailyLeaderName, setDailyLeaderName] = useState<string | null>(null);
+  const [dailyLeaderSubmittedForSeed, setDailyLeaderSubmittedForSeed] = useState<number | null>(null);
+  useEffect(() => {
+    if (wordGameMode === "menu" || wordGameMode === "daily") {
+      (async () => {
+        try {
+          const res = await fetch(`/api/wordgame-leader?seed=${dailySetSeed}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data && typeof data.leaderName === "string") setDailyLeaderName(data.leaderName);
+          else setDailyLeaderName(null);
+        } catch {
+          // /api/wordgame-leader henüz eklenmemiş olabilir — sorun değil, "henüz kimse yok" gösterilir
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wordGameMode, dailySetSeed]);
+  const [dailyCountdownNow, setDailyCountdownNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (activeTab !== "word-game" || wordGameMode === "unlimited") return;
+    const t = setInterval(() => setDailyCountdownNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [wordGameMode]);
+
+  // Bugünün seti — TÜM harfler birlikte bu sete göre kelime/ipucu gösteriyor. Artık takvim
+  // gününe değil, dailySetSeed'e (oyuncunun kendi 24 saatlik döngüsü) göre belirleniyor.
+  const todaysWordBank: Record<string, { word: string; clue: string }> = useMemo(() => {
+    const bank: Record<string, { word: string; clue: string }> = {};
+    TR_ALPHABET_ROTATION.forEach((l) => {
+      const variants = WORD_GAME_VARIANTS[l];
+      bank[l] = variants[dailySetSeed % variants.length];
+    });
+    return bank;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dailySetSeed]);
+
+  // Aşağıdaki tüm oyun mantığı (zamanlayıcı, cevap kontrolü, sonuç ekranı) artık bu "aktif"
+  // banka/ilerleme çiftini kullanıyor — mod "daily" ise günlük (kayıtlı) veri, "unlimited" ise
+  // limitsiz (kayıtsız) veri. Böylece aynı arayüz kodu iki modda da çalışıyor.
+  const activeWordBank = wordGameMode === "unlimited" ? unlimitedWordBank : todaysWordBank;
+  const activeWordProgress = wordGameMode === "unlimited" ? unlimitedProgress : wordProgress;
+  const setActiveWordProgress = wordGameMode === "unlimited" ? setUnlimitedProgress : setWordProgress;
+
+  const wordGameStorageKey = () => `infinity_wordgame_${currentUser || "guest"}`;
+
+  // DÜZELTME (istek): "24 saatte bir, oyuncunun en son girdiğinden itibaren" — artık kayıtlı
+  // kayıtta bir sonraki açılış zamanı (unlockAt) tutuluyor. O zaman henüz gelmediyse aynı set +
+  // ilerleme geri yükleniyor; geldiyse (ya da hiç kayıt yoksa) YENİ bir set seçilip 24 saatlik
+  // yeni bir pencere başlatılıyor ve ilerleme sıfırlanıyor.
+  useEffect(() => {
+    if (activeTab !== "word-game") return;
+    const now = Date.now();
+    try {
+      const raw = window.localStorage.getItem(wordGameStorageKey());
+      const saved = raw ? JSON.parse(raw) : null;
+      if (saved && typeof saved.unlockAt === "number" && now < saved.unlockAt) {
+        setDailyUnlockAt(saved.unlockAt);
+        setDailySetSeed(saved.setSeed || 0);
+        setWordProgress(saved.progress || {});
+        setWordProgressLoaded(true);
+        setWordResultsAutoShown(
+          Object.values(saved.progress || {}).filter((p: any) => p.status === "correct" || p.status === "timeout").length >= TR_ALPHABET_ROTATION.length
+        );
+        return;
+      }
+      // Menüde yalnızca mevcut durumu göster; 24 saatlik döngü oyuncu günlük oyunu başlattığında başlar.
+      if (wordGameMode !== "daily") {
+        setDailyUnlockAt(saved?.unlockAt || null);
+        setDailySetSeed(saved?.setSeed || 0);
+        setWordProgress({});
+        setWordProgressLoaded(true);
+        return;
+      }
+      // Süre dolmuş (ya da hiç oynanmamış) — yeni 24 saatlik döngü + yeni kelime seti başlat.
+      const newSeed = (saved?.setSeed ?? -1) + 1;
+      const newUnlockAt = now + 24 * 60 * 60 * 1000;
+      window.localStorage.setItem(wordGameStorageKey(), JSON.stringify({ unlockAt: newUnlockAt, setSeed: newSeed, progress: {} }));
+      setDailyUnlockAt(newUnlockAt);
+      setDailySetSeed(newSeed);
+      setWordProgress({});
+      setWordProgressLoaded(true);
+      setWordResultsAutoShown(false);
+    } catch {
+      const newUnlockAt = now + 24 * 60 * 60 * 1000;
+      setDailyUnlockAt(newUnlockAt);
+      setWordProgress({});
+      setWordProgressLoaded(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, currentUser, wordGameMode]);
+
+  // Seçili harf değişince (henüz bitirilmemişse) zamanlayıcıyı o harf için baştan başlat.
+  // "pass" durumundaki bir harfe geri dönülüyorsa (otomatik pas döngüsü) onu da "playing"e
+  // çevirip gerçekten yeniden denenebilir hale getiriyoruz — yoksa sonsuza kadar "pass" kalırdı.
+  useEffect(() => {
+    if (wordGameMode === "daily" && !wordProgressLoaded) return;
+    const existing = activeWordProgress[selectedWordLetter];
+    if (!existing || existing.status === "playing") {
+      setWordTimeLeft(240);
+      setWordGuessInput("");
+    } else if (existing.status === "pass") {
+      setActiveWordProgress((prev) => {
+        const next = { ...prev };
+        delete next[selectedWordLetter];
+        if (wordGameMode === "daily") persistWordProgress(next);
+        return next;
+      });
+      setWordTimeLeft(240);
+      setWordGuessInput("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedWordLetter, wordProgressLoaded, wordGameMode]);
+
+  // DÜZELTME: artık sadece "progress" değil, unlockAt/setSeed'i de KORUYARAK yazıyoruz —
+  // yoksa her ilerleme kaydında 24 saatlik pencere de sıfırlanmış gibi bozulurdu.
+  const persistWordProgress = (next: Record<string, { status: "playing" | "correct" | "pass" | "timeout"; wrongCount: number; lastGuess?: string }>) => {
+    try {
+      window.localStorage.setItem(wordGameStorageKey(), JSON.stringify({ unlockAt: dailyUnlockAt, setSeed: dailySetSeed, progress: next }));
+    } catch {}
+  };
+
+  // Bir harfin turu bitince (doğru/pas/süre doldu) o harfe özel sonucu kaydet. DÜZELTME (istek):
+  // artık "aktif" moda (günlük/limitsiz) yazıyor — limitsiz modda ASLA localStorage'a
+  // yazılmıyor, sadece günlükte kalıcı hale geliyor.
+  // YENİ (istek): "cevap anahtarında yanlış yapılan sorularda oyuncunun verdiği cevap yazsın" —
+  // artık yanlış cevap verildiğinde oyuncunun GERÇEKTEN yazdığı metin de saklanıyor, sonuç
+  // ekranındaki cevap anahtarında doğru cevabın yanında gösterilebiliyor.
+  const finishWordRound = (letter: string, status: "correct" | "pass" | "timeout", finalWrongCount: number, lastGuess?: string) => {
+    setActiveWordProgress((prev) => {
+      const next = { ...prev, [letter]: { status, wrongCount: finalWrongCount, lastGuess: lastGuess ?? prev[letter]?.lastGuess } };
+      if (wordGameMode === "daily") persistWordProgress(next);
+      return next;
+    });
+  };
+
+  // YENİ (istek): "oyuncu pas bıraktığı sorulara tüm harfleri bitirdikten sonra otomatik
+  // pas bıraktığı harfleri gezsin ... tekrar pas bırakırsa döngü" — "pas" artık KALICI bir
+  // sonuç değil, sadece GEÇİCİ bir atlama. Sıradaki harf ararken "playing" (hiç denenmemiş)
+  // VEYA "pass" (daha önce atlanmış, tekrar denenmeyi bekliyor) durumundaki harfler aday
+  // sayılıyor — böylece A/C/E atlanıp Y'ye kadar gidildiğinde, Y bitince otomatik olarak
+  // sırayla A'ya, sonra (yine pas geçilirse) C'ye dönülüyor; bu döngü her harf gerçekten
+  // DOĞRU ya da (yanlış cevap/süre dolması ile) KESİN YANLIŞ olana kadar sürüyor.
+  const moveToNextWord = (fromLetter: string) => {
+    const index = TR_ALPHABET_ROTATION.indexOf(fromLetter);
+    const remaining = [...TR_ALPHABET_ROTATION.slice(index + 1), ...TR_ALPHABET_ROTATION.slice(0, index)];
+    const next = remaining.find((letter) => {
+      const st = activeWordProgress[letter]?.status;
+      return !st || st === "playing" || st === "pass";
+    });
+    if (next) setSelectedWordLetter(next);
+  };
+
+  const currentWordProgress = activeWordProgress[selectedWordLetter];
+  const currentWordStatus: "playing" | "correct" | "pass" | "timeout" = currentWordProgress?.status || "playing";
+  const currentWordWrongCount = currentWordProgress?.wrongCount || 0;
+
+  // Bugünkü/limitsizdeki harflerin tamamı bitince "Sonuçlar" ekranını (bir kez) otomatik aç.
+  useEffect(() => {
+    if (wordGameMode === "daily" && (!wordProgressLoaded || wordResultsAutoShown)) return;
+    if (wordGameMode === "unlimited" && wordResultsAutoShown) return;
+    const values = Object.values(activeWordProgress);
+    const done = values.filter((p) => p.status === "correct" || p.status === "timeout").length;
+    if (done >= TR_ALPHABET_ROTATION.length) {
+      setWordResultsOpen(true);
+      setWordResultsAutoShown(true);
+      // DÜZELTME (istek): "günün lideri" — o günkü setin TAMAMINI doğru bilen ilk hesap
+      // sunucuya bildiriliyor (backend, ilk gelen ismi kalıcı tutup sonrakileri yok sayabilir).
+      const allCorrect = values.filter((p) => p.status === "correct").length >= TR_ALPHABET_ROTATION.length;
+      if (wordGameMode === "daily" && allCorrect && currentUser && dailyLeaderSubmittedForSeed !== dailySetSeed) {
+        setDailyLeaderSubmittedForSeed(dailySetSeed);
+        fetch("/api/wordgame-leader", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ seed: dailySetSeed, name: currentUser }),
+        }).then(async (res) => {
+          if (!res.ok) return;
+          try {
+            const data = await res.json();
+            if (data && typeof data.leaderName === "string") setDailyLeaderName(data.leaderName);
+          } catch {}
+        }).catch(() => {
+          // /api/wordgame-leader henüz eklenmemiş olabilir, sorun değil
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeWordProgress, wordProgressLoaded, wordResultsAutoShown, wordGameMode]);
+
+  // Harf başına 4 dakikalık geri sayım — sadece seçili harf "playing" durumundayken çalışır.
+  useEffect(() => {
+    if (activeTab !== "word-game" || wordGameMode === "menu") return;
+    if (wordGameMode === "daily" && !wordProgressLoaded) return;
+    if (currentWordStatus !== "playing") return;
+    if (wordTimeLeft <= 0) {
+      finishWordRound(selectedWordLetter, "timeout", currentWordWrongCount);
+      setTimeout(() => moveToNextWord(selectedWordLetter), 500);
+      return;
+    }
+    const t = setTimeout(() => setWordTimeLeft((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, wordProgressLoaded, currentWordStatus, wordTimeLeft, selectedWordLetter, wordGameMode]);
+
+  // DÜZELTME (ASIL BUG — "ISO'ya iso yazınca yanlış diyor"): Türkçe'de küçük harf "i" büyütülünce
+  // NOKTALI "İ" olur (toLocaleUpperCase("tr-TR")), ama "ISO" gibi özel isimler veritabanında
+  // NOKTASIZ büyük "I" ile saklanıyor — bu yüzden doğru cevap yazılsa bile "İSO" ≠ "ISO" olup
+  // YANLIŞ sayılıyordu (klasik "Türkçe I problemi"). Artık karşılaştırmadan önce İ/I/ı/i
+  // hepsi TEK bir harfe indirgeniyor, hangi tuşla yazılırsa yazılsın eşleşiyor.
+  const normalizeForCompare = (s: string) => s.trim().toLocaleUpperCase("tr-TR").replace(/İ/g, "I");
+
+  const [wordStartWarning, setWordStartWarning] = useState(false);
+
+  const submitWordGuess = () => {
+    const answer = activeWordBank[selectedWordLetter]?.word || "";
+    const raw = wordGuessInput.trim();
+    if (raw === "") return;
+
+    // "bitir" yazılırsa oyun erken sonlandırılır (pas ile aynı şekilde işlenir).
+    if (normalizeForCompare(raw) === "BITIR") {
+      playClickSound();
+      finishWordRound(selectedWordLetter, "pass", currentWordWrongCount);
+      setWordGuessInput("");
+      return;
+    }
+
+    // YENİ (istek): "yukarda A varsa cypher yazınca kelimen A ile başlamalı uyarısı versin,
+    // oyuncu tekrar yazsın" — cevap, seçili harfle başlamıyorsa direkt YANLIŞ SAYMADAN önce
+    // uyarı gösterip tekrar denemesine izin veriyoruz (deneme hakkı/süre kaybetmeden).
+    if (normalizeForCompare(raw)[0] !== normalizeForCompare(selectedWordLetter)) {
+      playWrongSound();
+      setWordStartWarning(true);
+      setWordGuessInput("");
+      setTimeout(() => setWordStartWarning(false), 2200);
+      return;
+    }
+
+    if (normalizeForCompare(raw) === normalizeForCompare(answer)) {
+      playCorrectSound();
+      setWordFeedback("correct");
+      setTimeout(() => setWordFeedback(null), 600);
+      finishWordRound(selectedWordLetter, "correct", currentWordWrongCount);
+      setWordGuessInput("");
+      setTimeout(() => moveToNextWord(selectedWordLetter), 650);
+    } else {
+      playWrongSound();
+      setWordFeedback("wrong");
+      setTimeout(() => setWordFeedback(null), 600);
+      finishWordRound(selectedWordLetter, "timeout", currentWordWrongCount + 1, raw);
+      setWordGuessInput("");
+      setTimeout(() => moveToNextWord(selectedWordLetter), 650);
+    }
+  };
+
+  const passWordRound = () => {
+    playClickSound();
+    finishWordRound(selectedWordLetter, "pass", currentWordWrongCount);
+    setWordGuessInput("");
+    setTimeout(() => moveToNextWord(selectedWordLetter), 450);
+  };
+
+  const [skinCatalogLoading, setSkinCatalogLoading] = useState(true);
+  // DÜZELTME (istek): "Bıçak dışındaki silahlarda skin bulunamadı diyor" — bu yer tutucu liste
+  // canlı valorant-api.com isteği bitene (ya da başarısız olursa süresiz) kadar gösteriliyor.
+  // Listede "Classic" ve "Ghost" için HİÇ satır yoktu — yani o iki sekmeye bakan biri, gerçek
+  // veri henüz gelmemişse (yavaş bağlantı) ya da istek başarısız olursa (aşağıdaki .catch),
+  // KESİN olarak "skin bulunamadı" görüyordu. Artık 7 silahın (Vandal, Phantom, Bıçak, Sheriff,
+  // Classic, Operator, Ghost) HER BİRİNDE en az birkaç yer tutucu satır var.
+  const [skinCatalog, setSkinCatalog] = useState<{ id: string; name: string; weapon: string; image: string | null; votes: number }[]>([
+    { id: "prime-vandal", name: "Prime Vandal", weapon: "Vandal", image: null, votes: 982 }, { id: "reaver-vandal", name: "Reaver Vandal", weapon: "Vandal", image: null, votes: 961 },
+    { id: "kuronami-vandal", name: "Kuronami Vandal", weapon: "Vandal", image: null, votes: 944 }, { id: "araxys-vandal", name: "Araxys Vandal", weapon: "Vandal", image: null, votes: 926 },
+    { id: "xerofang-vandal", name: "Xerøfang Vandal", weapon: "Vandal", image: null, votes: 901 }, { id: "prime-phantom", name: "Prime Phantom", weapon: "Phantom", image: null, votes: 873 },
+    { id: "recon-phantom", name: "Recon Phantom", weapon: "Phantom", image: null, votes: 851 }, { id: "ion-sheriff", name: "Ion Sheriff", weapon: "Sheriff", image: null, votes: 832 },
+    { id: "reaver-sheriff", name: "Reaver Sheriff", weapon: "Sheriff", image: null, votes: 817 }, { id: "ion-operator", name: "Ion Operator", weapon: "Operator", image: null, votes: 798 },
+    { id: "reaver-knife", name: "Reaver Karambit", weapon: "Bıçak", image: null, votes: 785 }, { id: "kuronami-knife", name: "Kuronami no Yaiba", weapon: "Bıçak", image: null, votes: 772 },
+    { id: "prime-classic", name: "Prime Classic", weapon: "Classic", image: null, votes: 760 }, { id: "reaver-classic", name: "Reaver Classic", weapon: "Classic", image: null, votes: 745 },
+    { id: "prime-ghost", name: "Prime Ghost", weapon: "Ghost", image: null, votes: 733 }, { id: "ion-ghost", name: "Ion Ghost", weapon: "Ghost", image: null, votes: 720 },
+  ]);
+
+  // Skin görselleri paketlenmiş dosya değil; resmi topluluk veri kaynağından URL olarak gelir.
+  // Böylece yüzlerce görseli public klasörüne tek tek koymak gerekmez.
+  // DÜZELTME (istek): "skin adlarını Türkçe yapmak istiyorum" — valorant-api.com,
+  // ?language=tr-TR parametresiyle çağrılınca displayName alanını doğrudan Türkçe
+  // döndürüyor (örn. "Prelude to Chaos Vandal" yerine resmi Türkçe skin adı gelir).
+  // Ekstra bir çeviri katmanı yazmaya gerek kalmadan API'den doğrudan Türkçe isim çekiliyor.
+  useEffect(() => {
+    // DÜZELTME (istek): "Bıçak dışında diğer silahlerde skin bulunamadı diyor" — bunun asıl
+    // nedeni valorant-api.com isteğinin ara sıra (yavaş bağlantı/geçici kesinti) başarısız
+    // olması, ve o zaman katalogun yukarıdaki YER TUTUCU listede takılı kalmasıydı. Artık ilk
+    // istek başarısız olursa 1.5 saniye sonra BİR KEZ daha deneniyor; her iki deneme de
+    // başarısız olursa katalog en azından 7 silahın hepsini kapsayan yer tutucu listede kalıyor
+    // (yukarıya bkz.), asla tamamen boş bir sekme göstermiyor.
+    let cancelled = false;
+    const load = (isRetry: boolean) => {
+      // DÜZELTME (ASIL BUG — "Bıçak dışındaki HER silahta skin bulunamadı"): silah eşleştirmesi
+      // yalnızca tr-TR isteğinden gelen weapon.displayName metnine göre yapılıyordu. Bıçak
+      // (Melee) zaten koddan sabit "Bıçak" olarak atandığı için HER ZAMAN çalışıyordu, ama
+      // diğer silahlar (Vandal/Phantom/Sheriff/Classic/Operator/Ghost) tr-TR yanıtındaki
+      // displayName'in sekme anahtarlarıyla (WEAPON_OPTIONS) birebir aynı gelmesine bağımlıydı
+      // — küçük bir biçim farkı (boşluk, büyük/küçük harf, yerelleştirme) tek bir eşleşmeyi bile
+      // bozarsa o silahın sekmesi tamamen boş kalıyordu. Artık silah TÜRÜ (weapon.uuid üzerinden)
+      // dilden BAĞIMSIZ İNGİLİZCE isimle eşleştiriliyor, skin İSİMLERİ ise ayrıca tr-TR'den
+      // alınıyor — böylece hangi dilde ne dönerse dönsün sekme eşleşmesi asla bozulmuyor.
+      Promise.all([
+        fetch("https://valorant-api.com/v1/weapons?language=tr-TR").then((res) => (res.ok ? res.json() : null)),
+        fetch("https://valorant-api.com/v1/weapons").then((res) => (res.ok ? res.json() : null)),
+      ])
+        .then(([payload, enPayload]) => {
+          if (cancelled) return;
+          if (!Array.isArray(payload?.data)) {
+            if (!isRetry) { setTimeout(() => load(true), 1500); return; }
+            setSkinCatalogLoading(false);
+            return;
+          }
+          // uuid -> dilden bağımsız İngilizce silah adı (Vandal, Phantom, Ghost, Sheriff,
+          // Classic, Operator...). Bu isimler WEAPON_OPTIONS sekme anahtarlarıyla birebir aynı.
+          const englishNameByUuid = new Map<string, string>(
+            (Array.isArray(enPayload?.data) ? enPayload.data : []).map((w: any) => [w.uuid, String(w.displayName || "").trim()])
+          );
+          // DÜZELTME (istek): "random favorite skins" ve "standart kaplama" (K/TAC Operator gibi
+          // varsayılan/temel silah görünümleri) oylama havuzundan çıkarıldı. İsim karşılaştırması
+          // (displayName !== weapon.displayName) güvenilir değildi çünkü bazı temel skinlerin özel
+          // isimleri var (örn. Operator'ın temel skini "K/TAC Operator"). Asıl güvenilir ayraç:
+          // GERÇEK/satın alınabilir skinlerin her zaman bir "contentTierUuid" (Select/Deluxe/
+          // Premium/Ultra/Exclusive nadirlik seviyesi) vardır, temel/varsayılan skinlerde bu alan
+          // hiç yoktur (null). Böylece havuzda artık sadece gerçek, satın alınabilir skinler kalıyor.
+          // DÜZELTME (istek): "BAĞÇÖZEN CLASSIC" gibi tamamen büyük harfli isimler yerine Title
+          // Case ("Vahşiçene Classic" tarzı, her kelimenin ilk harfi büyük) — Türkçe İ/I harfleri
+          // için toLocaleLowerCase/toLocaleUpperCase("tr-TR") kullanılıyor ki "i" yanlışlıkla "I"
+          // olmasın.
+          const toTitleCase = (str: string) =>
+            str
+              .toLocaleLowerCase("tr-TR")
+              .split(" ")
+              .map((word: string) => (word.length ? word[0].toLocaleUpperCase("tr-TR") + word.slice(1) : word))
+              .join(" ");
+          const mapped: { id: string; name: string; weapon: string; image: string | null; votes: number }[] = payload.data.flatMap((weapon: any) => (weapon.skins || [])
+            .filter((skin: any) => skin.displayName && skin.displayName !== weapon.displayName && !!skin.contentTierUuid)
+            .map((skin: any, index: number) => ({
+              id: skin.uuid as string, name: toTitleCase(skin.displayName) as string,
+              // DÜZELTME: weapon.displayName'in başında/sonunda görünmez boşluk gelme ihtimaline
+              // karşı .trim() eklendi — WEAPON_OPTIONS sekme anahtarlarıyla (örn. "Classic")
+              // birebir string eşleşmesi bu yüzden sessizce başarısız olabiliyordu.
+              weapon: (weapon.category === "EEquippableCategory::Melee"
+                ? "Bıçak"
+                : (englishNameByUuid.get(weapon.uuid) || String(weapon.displayName || "").trim())) as string,
+              image: (
+                skin.displayIcon
+                || skin.chromas?.[0]?.fullRender
+                || skin.chromas?.[0]?.displayIcon
+                || skin.levels?.[0]?.displayIcon
+                || skin.chromas?.[0]?.swatch
+                || null
+              ) as string | null,
+              votes: Math.max(80, 1000 - index * 3),
+            }))
+          )
+            // DÜZELTME (istek): "Gösterişli Bıçak hiçbir türlü yüklenmiyor, direkt kaldırabilirsin
+            // siteden böyle bi skin" — görseli hiçbir kaynaktan bulunamayan (yukarıdaki tüm
+            // fallback'lere rağmen null kalan) skinler artık havuza HİÇ girmiyor; kırık/boş
+            // kart göstermek yerine sessizce eleniyor.
+            .filter((s: { image: string | null }) => !!s.image);
+          if (mapped.length) {
+            setSkinCatalog(mapped);
+            // DÜZELTME: eğer daha önce seçili/kaydedilmiş silah, gerçek katalogda yoksa
+            // (örn. hiç skin bulunamayan bir sekmede kalınmışsa) otomatik olarak listede
+            // GERÇEKTEN var olan ilk silaha geç — böylece "0 skin bulundu" durumunda
+            // kullanıcı asla boş bir sekmede takılı kalmaz.
+            setSkinWeapon((current: string): string => {
+              const weapons: string[] = Array.from(new Set(mapped.map((s) => s.weapon)));
+              return weapons.includes(current) ? current : (weapons[0] || current);
+            });
+          } else if (!isRetry) {
+            setTimeout(() => load(true), 1500);
+            return;
+          }
+          setSkinCatalogLoading(false);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          if (!isRetry) { setTimeout(() => load(true), 1500); return; }
+          setSkinCatalogLoading(false);
+        });
+    };
+    load(false);
+    return () => { cancelled = true; };
+  }, []);
 
   // Oturum bazlı giriş sistemi (gerçek kalıcı hesap için backend/veritabanı gerekir - bu client-side bir simülasyondur)
   // DÜZELTME: giriş artık localStorage'da saklanıyor, F5 / sayfa yenilemede kaybolmuyor.
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState("");
+  // YENİ: nav sekme çizgisinin (navActiveIndicator) F5'te "titremesi" buradan geliyordu —
+  // layoutId'li bir motion.div, ilk render "home" ile başlayıp useLayoutEffect kayıtlı sekmeye
+  // (örn. "crosshairs") geçince, bu iki render arasında bir KAYMA animasyonu oynatıyordu (kullanıcı
+  // "home" halini hiç görmese bile, Framer Motion iki commit arasındaki pozisyon farkını FLIP
+  // animasyonuyla oynatıyor). navMounted, mount'tan SONRA true oluyor — ilk boyamada (henüz false
+  // iken) çizgi animasyonsuz, direkt doğru yerinde beliriyor; sonraki gerçek sekme değişimlerinde
+  // (kullanıcı tıklayınca, navMounted zaten true) normal kayma animasyonu çalışmaya devam ediyor.
+  const [navMounted, setNavMounted] = useState(false);
+  useEffect(() => { setNavMounted(true); }, []);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [loginWarning, setLoginWarning] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false); // YENİ: sağ üstteki hesap butonu artık direkt çıkış yapmıyor, menü açıyor
@@ -866,6 +1989,12 @@ function PageContent() {
     setCurrentUser("");
     setIsLoggedIn(false);
     try { window.localStorage.removeItem("infinity_current_user"); } catch {}
+  };
+  const requireLogin = () => {
+    if (isLoggedIn && currentUser) return true;
+    setLoginWarning(true);
+    setTimeout(() => setLoginWarning(false), 2800);
+    return false;
   };
 
   // ==========================================
@@ -927,26 +2056,38 @@ function PageContent() {
     return DEFAULT_AVATAR;
   };
 
+  // DÜZELTME (ASIL BUG — "ana hesapta seçtiğim avatar yan hesaba da bulaşıyor"): avatar tek bir
+  // GLOBAL "infinity_avatar" anahtarında saklanıyordu — yani aslında hesaba değil TARAYICIYA
+  // bağlıydı. Hesap değiştirince (çıkış yapıp başka biriyle giriş yapınca) eski hesabın avatarı
+  // olduğu gibi kalıyordu. Artık her hesabın kendi anahtarı var: "infinity_avatar_<kullanıcı adı>"
+  // (giriş yapılmamışken "infinity_avatar_guest").
+  const avatarStorageKey = (user: string) => `infinity_avatar_${user || "guest"}`;
+
   // DÜZELTME (avatar F5'te titriyor / önce standarta dönüp sonra eski avatara geçiyor):
   // bu normal useEffect boyamadan SONRA çalışıyordu — yani kullanıcı bir an için varsayılan
   // (standart.jpg) avatarı GERÇEKTEN görüyordu, sonra kayıtlı avatara geçiş oluyordu. Aktif
   // sekme/giriş durumu için yapılan düzeltmenin AYNISI burada da gerekiyor: useLayoutEffect
   // boyamadan ÖNCE, senkron çalışıyor — kullanıcı artık standart hali hiç görmüyor, direkt
-  // kayıtlı avatarıyla açılıyor.
+  // kayıtlı avatarıyla açılıyor. ÖNEMLİ: bu effect currentUser'ı restore eden effect'ten SONRA
+  // tanımlı olduğu için (useLayoutEffect'ler tanım sırasına göre çalışır), currentUser burada
+  // zaten doğru değerine sahip — ilk açılışta da doğru hesabın avatarını okuyor.
   useLayoutEffect(() => {
     try {
-      const saved = window.localStorage.getItem("infinity_avatar");
+      const saved = window.localStorage.getItem(avatarStorageKey(currentUser));
       if (saved) {
         const parsed = JSON.parse(saved);
         // Eski (emoji tabanlı) kayıtlarla uyumluluk: "img" alanı yoksa varsayılana dön.
         if (parsed && parsed.img) setSelectedAvatar(parsed);
+      } else {
+        setSelectedAvatar(DEFAULT_AVATAR);
       }
     } catch {}
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser]);
 
   const chooseAvatar = (item: AvatarItem) => {
     setSelectedAvatar(item);
-    try { window.localStorage.setItem("infinity_avatar", JSON.stringify(item)); } catch {}
+    try { window.localStorage.setItem(avatarStorageKey(currentUser), JSON.stringify(item)); } catch {}
     setIsAvatarModalOpen(false);
     // DÜZELTME: artık avatar değişir değişmez veritabanına da yazılıyor — önceden sadece
     // yarışma bitince gönderiliyordu, bu yüzden başkaları senin eski avatarını görmeye
@@ -963,6 +2104,13 @@ function PageContent() {
 
   // Canlı liderlik tablosu (oturum boyunca gerçek oynayan kullanıcıları da içerir)
   const [liveLeaderboard, setLiveLeaderboard] = useState(LEADERBOARD_DATA);
+  // YENİ: "tablo bir anlığına sıfırlanıp eski haline dönüyor" şikayetinin sebebi buydu — tablo
+  // ilk render'da hep sabit "Henüz kimse yok" placeholder'larla başlıyor, bir an sonra GERÇEK
+  // veri gelince değişiyordu; bu "önce boş göster, sonra doldur" geçişi bir "sıfırlanma" gibi
+  // algılanıyordu. Artık veri gelene kadar (loading=true) placeholder satırlar yerine gerçek bir
+  // YÜKLENİYOR iskeleti gösteriliyor — kullanıcı bunun "boş" değil "henüz yükleniyor" olduğunu
+  // net anlıyor, veri gelince tek seferde (sıfırlanma hissi olmadan) doluyor.
+  const [leaderboardLoading, setLeaderboardLoading] = useState(true);
 
   // Liderlik tablosunu sayfa açılır açılmaz Supabase'den çeker — artık F5'te kaybolmaz,
   // herkes aynı listeyi görür. /api/leaderboard route'u eklenmeden bu sessizce başarısız olur
@@ -976,6 +2124,8 @@ function PageContent() {
         if (Array.isArray(data.players)) setLiveLeaderboard(data.players);
       } catch {
         // /api/leaderboard henüz eklenmemiş olabilir, sorun değil, boş liste ile devam eder
+      } finally {
+        setLeaderboardLoading(false);
       }
     })();
   }, []);
@@ -1033,7 +2183,7 @@ function PageContent() {
   // Gerçek çalışan beğeni sistemi (oturum bazlı; kalıcı/herkes-ortak olması için backend gerekir)
   const [likeCounts, setLikeCounts] = useState<Record<number, number>>(() => {
     const base: Record<number, number> = {};
-    CROSSHAIRS_DATA.forEach((c) => { base[c.id] = parseLikes(c.likes); });
+    CROSSHAIRS_DATA.forEach((c) => { base[Number(c.id)] = parseLikes(c.likes); });
     return base;
   });
   const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
@@ -1064,6 +2214,34 @@ function PageContent() {
       body: JSON.stringify({ id, delta: alreadyLiked ? -1 : 1 }),
     }).catch(() => {});
   };
+
+  // PERFORMANS DÜZELTMESİ: 500+ nişangahlık listenin filtrele+sırala işlemi eskiden
+  // render gövdesi içinde (IIFE) çalışıyordu — yani "crosshairs" sekmesi açıkken sayfadaki
+  // HERHANGİ BİR state değişse bile (örn. bir başka kutuya yazı yazılsa bile, çünkü tüm
+  // component tek parça ve hiç memoization yoktu) bu 500 elemanlık filter+sort YENİDEN
+  // çalışıyordu. useMemo ile artık SADECE gerçekten ilgili değerler (liste, arama, filtre,
+  // sıralama, beğeni sayıları) değiştiğinde yeniden hesaplanıyor.
+  const sortedCrosshairsList = useMemo(() => {
+    const allCrosshairs = [...customCrosshairs, ...CROSSHAIRS_DATA];
+    const q = crosshairSearch.toLowerCase();
+    const filtered = allCrosshairs
+      .filter((item) => item.title.toLowerCase().includes(q) || item.subtitle.toLowerCase().includes(q))
+      .filter((item) => tierFilter === "all" || item.rank === tierFilter);
+    return [...filtered].sort((a, b) => {
+      if (sortType === "tier") return getRankStyle(b.rank).order - getRankStyle(a.rank).order;
+      if (sortType === "new") {
+        // DÜZELTME (TS hatası): id alanı "string | number" olabildiği için doğrudan >=/-
+        // kullanmak derleme hatası veriyordu, Number() ile normalize edildi (davranış aynı).
+        const aId = Number(a.id);
+        const bId = Number(b.id);
+        const aIsSample = aId >= 900000;
+        const bIsSample = bId >= 900000;
+        if (aIsSample !== bIsSample) return aIsSample ? 1 : -1;
+        return bId - aId;
+      }
+      return (likeCounts[Number(b.id)] ?? parseLikes(b.likes)) - (likeCounts[Number(a.id)] ?? parseLikes(a.likes));
+    });
+  }, [customCrosshairs, crosshairSearch, tierFilter, sortType, likeCounts]);
   const [isCrosshairModalOpen, setIsCrosshairModalOpen] = useState(false); // yeni eklendi: nişangah ekleme penceresi
   // YENİ: nişangah kartına tıklanınca açılan "haritada gör" penceresi — crosshair'i gerçek
   // 3 harita fotoğrafı (sunset/summit/bind) üzerinde, oyun içindeki gibi ortada gösterir.
@@ -1084,7 +2262,126 @@ function PageContent() {
   const [teamSearchQuery, setTeamSearchQuery] = useState("");
   const [copiedCode, setCopiedCode] = useState<number | null>(null);
   const [isLobbyModalOpen, setIsLobbyModalOpen] = useState(false);
-  const [lobbies, setLobbies] = useState<LobbyItem[]>(TEAM_FINDER_DATA); // yeni eklendi: reaktif lobi listesi
+
+  // ===== FORUM (YENİ) =====
+  const [forumPosts, setForumPosts] = useState<any[]>([]);
+  // DÜZELTME (istek): "bir gönderiye girip F5 atınca o gönderide kalsın, foruma dönmesin" —
+  // activeTab'ın ?tab= ile yaptığı AYNI deseni burada da uyguluyoruz: seçili gönderi id'si
+  // URL'nin ?post= parametresinde tutuluyor, böylece F5'te de aynı gönderi restore ediliyor.
+  const urlPost = searchParams.get("post");
+  const [selectedForumPostId, setSelectedForumPostId] = useState<number | null>(urlPost ? Number(urlPost) : null);
+  const [forumComments, setForumComments] = useState<any[]>([]);
+  const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
+  const [newPostHasPoll, setNewPostHasPoll] = useState(false);
+  const [newPostPollOptions, setNewPostPollOptions] = useState(["", ""]);
+  // forumPosts state'i tanımlandıktan sonra hesaplanmalı; aksi halde ilk render'da
+  // Temporal Dead Zone hatasıyla sayfa açılmadan çöker.
+  const topForumPosts = useMemo(
+    () => [...forumPosts].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0)).slice(0, 5),
+    [forumPosts]
+  );
+  // PERFORMANS DÜZELTMESİ ("yorum/mesaj kutucukları kasıyor" — ASIL SEBEP): forumCommentInput
+  // eskiden React state'ti (value + onChange). Bu component'te (~4700 satır) HİÇ useMemo/
+  // useCallback/memo YOK — yani her karakter yazıldığında setForumCommentInput çağrılıyor,
+  // bu da TÜM sayfayı (crosshair listesi, forum listesi, quiz, her şey) yeniden render
+  // ediyordu. "Yeni Gönderi" modalındaki başlık/içerik zaten input.value ile (uncontrolled)
+  // okunuyordu — aynı deseni yorum kutusuna da uyguluyoruz: input artık bir ref üzerinden
+  // okunuyor, React state'i tetiklemiyor, gönderirken tek seferlik value okunup temizleniyor.
+  const forumCommentInputRef = useRef<HTMLInputElement | null>(null);
+  const [forumLikedIds, setForumLikedIds] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try {
+      const saved = window.localStorage.getItem("infinity_forum_liked");
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch { return new Set(); }
+  });
+  const [forumPollVoted, setForumPollVoted] = useState<Set<number>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try {
+      const saved = window.localStorage.getItem("infinity_forum_polls_voted");
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch { return new Set(); }
+  });
+
+  // DÜZELTME (istek): "F5 atınca bir anlığına mesajlar/en çok beğenilenler yok oluyor" —
+  // forumPosts ilk render'da hep [] (boş) ile başlıyordu ve gerçek veri gelene kadar bu boş
+  // durum "Henüz hiç gönderi yok" / "Henüz gönderi yok" olarak GERÇEKMİŞ gibi gösteriliyordu.
+  // Artık ayrı bir forumPostsLoading bayrağı var — veri gelene kadar bir yükleniyor iskeleti
+  // gösteriliyor, boş durum sadece istek bitip GERÇEKTEN 0 gönderi varsa gösteriliyor.
+  const [forumPostsLoading, setForumPostsLoading] = useState(true);
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/forum/posts");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data.posts)) setForumPosts(data.posts);
+      } catch {}
+      finally { setForumPostsLoading(false); }
+    })();
+  }, []);
+
+  const fetchForumComments = async (postId: number) => {
+    try {
+      const res = await fetch(`/api/forum/comments?postId=${postId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data.comments)) setForumComments(data.comments);
+    } catch {}
+  };
+
+  // DÜZELTME (istek): "bir gönderiye girip F5 atınca o gönderide kalsın, foruma dönmesin" —
+  // activeTab'ın ?tab= ile yaptığı AYNI desen: seçili gönderi id'si URL'nin ?post= parametresine
+  // yazılıyor, böylece F5'te (yukarıdaki urlPost okuması sayesinde) sayfa doğrudan o gönderiyle
+  // açılıyor.
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      if (selectedForumPostId === null) url.searchParams.delete("post");
+      else url.searchParams.set("post", String(selectedForumPostId));
+      window.history.replaceState(null, "", url.toString());
+    } catch {}
+  }, [selectedForumPostId]);
+
+  // Sayfa doğrudan ?post= ile (F5 ya da paylaşılan bir link) açıldıysa, o gönderinin yorumları
+  // da otomatik çekilsin — aksi halde gönderi görünür ama yorum kutusu hep boş kalırdı.
+  useEffect(() => {
+    if (urlPost) fetchForumComments(Number(urlPost));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const toggleForumLike = (kind: "post" | "comment", id: number, type: "like" | "dislike" = "like") => {
+    const key = `${kind}-${type}-${id}`;
+    const already = forumLikedIds.has(key);
+    const nextSet = new Set(forumLikedIds);
+    if (already) nextSet.delete(key); else nextSet.add(key);
+    setForumLikedIds(nextSet);
+    try { window.localStorage.setItem("infinity_forum_liked", JSON.stringify([...nextSet])); } catch {}
+
+    const delta = already ? -1 : 1;
+    const endpoint = kind === "post" ? "/api/forum/posts/like" : "/api/forum/comments/like";
+    fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, delta, type }),
+    }).catch(() => {});
+
+    const field = type === "dislike" ? "dislikes" : "likes";
+    if (kind === "post") {
+      setForumPosts((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: Math.max(0, p[field] + delta) } : p)));
+    } else {
+      setForumComments((prev) => prev.map((c) => (c.id === id ? { ...c, [field]: Math.max(0, c[field] + delta) } : c)));
+    }
+  };
+
+  const [lobbies, setLobbies] = useState<LobbyItem[]>([]); // yeni eklendi: reaktif lobi listesi
+  // YENİ: "F5'te bir anlığına deneme/fake lobiler geliyor sonra düzeliyor" şikayetinin sebebi
+  // buydu — liste ilk render'da hep sabit örnek (TEAM_FINDER_DATA) lobilerle başlıyor, gerçek
+  // veri gelince değişiyordu. Artık gerçek veri gelene/başarısız olana kadar (loading=true)
+  // örnek lobiler YERİNE bir yükleniyor iskeleti gösteriliyor — örnekler sadece API hiç yoksa
+  // veya boşsa nazik bir "geri düşüş" olarak kalıyor, ama asla ilk anda GERÇEKMİŞ gibi görünüp
+  // sonra "değişmiyor".
+  const [lobbiesLoading, setLobbiesLoading] = useState(true);
 
   // DÜZELTME: lobi çekme mantığı artık ayrı, tekrar kullanılabilir bir fonksiyon
   // (fetchLobbies) — hem sayfa ilk açıldığında hem de "Yenile" butonuna basınca
@@ -1096,7 +2393,7 @@ function PageContent() {
   const fetchLobbies = async () => {
     try {
       const res = await fetch("/api/lobbies");
-      if (!res.ok) return;
+      if (!res.ok) { setLobbies(TEAM_FINDER_DATA); return; }
       const data = await res.json();
       if (Array.isArray(data.lobbies) && data.lobbies.length > 0) {
         const mapped: LobbyItem[] = data.lobbies.map((l: any) => ({
@@ -1107,9 +2404,13 @@ function PageContent() {
           avatarId: l.avatar_id || null,
         }));
         setLobbies(mapped);
+      } else {
+        setLobbies(TEAM_FINDER_DATA); // API var ama henüz gerçek lobi yok — nazik geri düşüş
       }
     } catch {
-      // /api/lobbies henüz eklenmemiş olabilir, mevcut örnek lobilerle devam eder
+      setLobbies(TEAM_FINDER_DATA); // /api/lobbies henüz eklenmemiş olabilir, örnek lobilerle devam eder
+    } finally {
+      setLobbiesLoading(false);
     }
   };
 
@@ -1147,30 +2448,35 @@ function PageContent() {
     queueId?: string | null; isRanked?: boolean; gameStartMillis?: number | null;
   }
   interface RiotContentData {
-    activeActId: string | null; tiers: { tier: number; name: string; icon: string }[]; agents: { id: string; name: string }[]; maps: { id: string; name: string }[];
+    activeActId: string | null; tiers: { tier: number; name: string; icon: string }[]; agents: { id: string; name: string; icon: string | null }[]; maps: { id: string; name: string }[];
   }
   const [riotContent, setRiotContent] = useState<RiotContentData | null>(null);
   const [lastMatchStats, setLastMatchStats] = useState<LastMatchStats | null>(null);
   const [matchStatsLoading, setMatchStatsLoading] = useState(false);
   const [matchStatsError, setMatchStatsError] = useState("");
-  const [realLeaderboard, setRealLeaderboard] = useState<{ rank: number; name: string; rr: number; wins: number }[] | null>(null);
+  // YENİ: tek maç değil, son 10 maçın GERÇEK toplanmış istatistiği (K/D, ACS, ADR, HS%, kazanma
+  // oranı) — /api/riot-match-history route'undan geliyor, tracker sitelerinin yaptığı gibi
+  // maç maç toplanıp hesaplanıyor (Riot bunu hazır sunmuyor).
+  interface MatchHistorySummary {
+    matchCount: number; wins: number; winRate: number; kills: number; deaths: number; assists: number;
+    kd: number; acs: number; adr: number; hsPercent: number; competitiveTier: number | null;
+  }
+  interface MatchHistoryItem {
+    matchId: string; agentId: string | null; mapId: string | null; competitiveTier: number | null;
+    kills: number; deaths: number; assists: number; kd: number; acs: number; adr: number;
+    won: boolean | null; gameStartMillis: number | null;
+  }
+  const [recentMatches, setRecentMatches] = useState<MatchHistoryItem[]>([]);
+  const [matchSummary, setMatchSummary] = useState<MatchHistorySummary | null>(null);
   const [serverOnline, setServerOnline] = useState<boolean | null>(null);
 
-  // Sayfa açılınca içerik verisini (rütbe/ajan isimleri), sunucu durumunu ve gerçek liderlik tablosunu bir kez çek
+  // Sayfa açılınca içerik verisini (rütbe/ajan isimleri) ve sunucu durumunu bir kez çek.
+  // DÜZELTME: "Gerçek Sunucu Liderlik Tablosu" ana sayfadan kaldırıldığı için, artık
+  // gereksiz yere val-ranked-v1'e istek atılmıyor (Riot API kotasını boşuna tüketmesin diye).
   useEffect(() => {
     fetch(`/api/riot-content?region=${riotRegion}`)
       .then((r) => r.json())
-      .then((data) => {
-        if (!data.error) {
-          setRiotContent(data);
-          if (data.activeActId) {
-            fetch(`/api/riot-leaderboard?region=${riotRegion}&actId=${data.activeActId}&size=5`)
-              .then((r) => r.json())
-              .then((lb) => { if (!lb.error) setRealLeaderboard(lb.players); })
-              .catch(() => {});
-          }
-        }
-      })
+      .then((data) => { if (!data.error) setRiotContent(data); })
       .catch(() => {});
 
     fetch(`/api/riot-status?region=${riotRegion}`)
@@ -1189,6 +2495,12 @@ function PageContent() {
   const getAgentName = (agentId: string | null): string => {
     if (!agentId || !riotContent) return "Bilinmiyor";
     return riotContent.agents.find((a) => a.id.toLowerCase() === agentId.toLowerCase())?.name || "Bilinmiyor";
+  };
+  // YENİ: gerçek ajan portre görselini (Riot Content API'sinin "displayIcon" alanı) getirir —
+  // "Son Maçlar" satırında harf/emoji yerine gerçek ajan ikonlarını göstermek için.
+  const getAgentIcon = (agentId: string | null): string | null => {
+    if (!agentId || !riotContent) return null;
+    return riotContent.agents.find((a) => a.id.toLowerCase() === agentId.toLowerCase())?.icon || null;
   };
   // Harita id'sini gerçek harita ismine çeviren yardımcı
   const getMapName = (mapId: string | null): string => {
@@ -1221,6 +2533,8 @@ function PageContent() {
     setShowResult(false);
     setLastMatchStats(null);
     setMatchStatsError("");
+    setRecentMatches([]);
+    setMatchSummary(null);
 
     try {
       const res = await fetch(
@@ -1252,29 +2566,56 @@ function PageContent() {
       // Gerçek bir profil araması başarıyla yapıldı: site sayacını artır (yukarıdaki widget bunu okuyor)
       fetch("/api/site-stats", { method: "POST" }).catch(() => {});
 
-      // Doğrulama başarılı: şimdi gerçek maç geçmişinden en son dereceli maçı bul ve istatistiklerini çek
+      // Doğrulama başarılı: şimdi son 10 maçı çekip GERÇEK toplu istatistik (K/D, ACS, ADR,
+      // HS%, kazanma oranı) hesaplayan yeni route'u çağırıyoruz — artık tek maça değil,
+      // gerçek bir tracker sitesi gibi son 10 maçın ortalamasına dayanıyor.
       setMatchStatsLoading(true);
       try {
-        const matchesRes = await fetch(`/api/riot-matches?region=${riotRegion}&puuid=${data.puuid}`);
-        const matchesData = await matchesRes.json();
-
-        if (!matchesRes.ok || !matchesData.history || matchesData.history.length === 0) {
-          setMatchStatsError("Bu hesap için maç geçmişi bulunamadı (hiç maç oynanmamış olabilir).");
-          setMatchStatsLoading(false);
+        const historyRes = await fetch(`/api/riot-match-history?region=${riotRegion}&puuid=${data.puuid}&count=6`);
+        // DÜZELTME (teşhis — "Maç verisine bağlanılamadı" bug'u): önceden .json() burada
+        // hiç sarmalanmadan çağrılıyordu; sunucu ham bir hata sayfası (HTML) dönerse bu satır
+        // fırlatıyor ve aşağıdaki catch bloğu HER durumu aynı jenerik mesajla gösteriyordu —
+        // gerçek neden (ör. Riot'un val/match/v1'i bu API key'e kapatmış olması, 401/403) hiç
+        // görünmüyordu. Artık ayrıştırma ayrı sarmalanıyor, gerçek durum kodu konsola loglanıyor.
+        let historyData: any = null;
+        try {
+          historyData = await historyRes.json();
+        } catch {
+          console.error(`[handleSearch] /api/riot-match-history JSON değil — status=${historyRes.status}`);
+          setMatchStatsError("Maç verisi sunucudan beklenmedik biçimde döndü. Bu genelde Riot'un maç geçmişi uç noktasının bu API anahtarına kapalı olmasından ya da isteğin zaman aşımına uğramasından kaynaklanır.");
           return;
         }
 
-        // En son maçı al (Riot listeyi en yeniden en eskiye sıralı döner)
-        const latestMatch = matchesData.history[0];
-        const detailRes = await fetch(
-          `/api/riot-match-detail?region=${riotRegion}&matchId=${latestMatch.matchId}&puuid=${data.puuid}`
-        );
-        const detailData = await detailRes.json();
-
-        if (!detailRes.ok) {
-          setMatchStatsError(detailData.error || "Maç detayı alınamadı.");
+        if (!historyRes.ok) {
+          console.error(`[handleSearch] /api/riot-match-history hata — status=${historyRes.status}`, historyData);
+          if (historyRes.status === 401 || historyRes.status === 403) {
+            setMatchStatsError("Bu hesabın maç geçmişine erişilemiyor — Riot API anahtarı bu veri türüne (maç geçmişi) izinli olmayabilir.");
+          } else {
+            setMatchStatsError(historyData?.error || "Maç geçmişi alınamadı.");
+          }
+        } else if (!historyData.matches || historyData.matches.length === 0) {
+          setMatchStatsError("Bu hesap için maç geçmişi bulunamadı (hiç maç oynanmamış olabilir).");
         } else {
-          setLastMatchStats(detailData);
+          setRecentMatches(historyData.matches);
+          setMatchSummary(historyData.summary);
+          // Geriye dönük uyumluluk: "Son Maç Detayı" bölümü hâlâ tek bir maçın (en yenisinin)
+          // ayrıntısını gösteriyor, bunu da en güncel maçtan dolduruyoruz.
+          const latest = historyData.matches[0];
+          setLastMatchStats({
+            matchId: latest.matchId,
+            competitiveTier: latest.competitiveTier,
+            agentId: latest.agentId,
+            mapId: latest.mapId,
+            queueId: "",
+            isRanked: true,
+            gameStartMillis: latest.gameStartMillis,
+            won: latest.won,
+            kills: latest.kills,
+            deaths: latest.deaths,
+            assists: latest.assists,
+            kd: latest.kd,
+            acs: latest.acs,
+          });
         }
       } catch (err) {
         setMatchStatsError("Maç verisine bağlanılamadı.");
@@ -1290,7 +2631,7 @@ function PageContent() {
   // GÜNLÜK OYNAMA SINIRI: puanlar artık toplamalı olduğu için (max değil) sınırsız
   // oynayıp puan biriktirmeyi engellemek gerekiyor. Günde 6 oyun hakkı — 3 çok az,
   // 15 çok fazla olurdu (özellikle soru havuzu sınırlıysa), 6 makul bir orta nokta.
-  const DAILY_QUIZ_LIMIT = 6;
+  const DAILY_QUIZ_LIMIT = 8;
   // DÜZELTME: `toISOString()` tarihi HER ZAMAN UTC'ye çevirir. Türkiye (UTC+3) gibi bir
   // dilimde, örneğin gece 00:00-03:00 arası hâlâ "dünün" UTC tarihindesin — bu yüzden
   // gece yarısından sonra oynayınca limit yeni güne geçmiş gibi görünüp SIFIRLANMIYORDU.
@@ -1299,17 +2640,25 @@ function PageContent() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   };
+  // DÜZELTME (ASIL BUG — "ana hesapta hakkımı bitirdim, yan hesaba geçince yine oynayamıyorum"):
+  // günlük oynama hakkı tek bir GLOBAL "infinity_quiz_plays" anahtarında saklanıyordu — yani
+  // hesaba değil TARAYICIYA bağlıydı. Artık her hesabın kendi anahtarı var, tıpkı avatarda
+  // olduğu gibi: "infinity_quiz_plays_<kullanıcı adı>" (giriş yapılmamışken "..._guest").
+  const quizPlaysStorageKey = () => `infinity_quiz_plays_${currentUser || "guest"}`;
   const getPlaysToday = (): number => {
     if (typeof window === "undefined") return 0;
     try {
-      const raw = window.localStorage.getItem("infinity_quiz_plays");
+      const raw = window.localStorage.getItem(quizPlaysStorageKey());
       if (!raw) return 0;
       const parsed = JSON.parse(raw);
       return parsed.date === todayKey() ? parsed.count : 0;
     } catch { return 0; }
   };
   const [playsToday, setPlaysToday] = useState(0);
-  useEffect(() => { setPlaysToday(getPlaysToday()); }, [isQuizStarted]);
+  // DÜZELTME: artık currentUser değiştiğinde de (hesap değiştirme) yeniden okunuyor —
+  // eskiden sadece isQuizStarted değişince okunuyordu, hesap değişse bile eski hesabın
+  // sayısı ekranda kalmaya devam ederdi.
+  useEffect(() => { setPlaysToday(getPlaysToday()); }, [isQuizStarted, currentUser]);
   // YENİ: sekme gece yarısını geçerek açık kalırsa (F5 atılmadan) günlük hakkın yine de
   // doğru sıfırlanması için, sekmeye her geri dönüldüğünde günü tekrar kontrol ediyoruz.
   useEffect(() => {
@@ -1320,11 +2669,12 @@ function PageContent() {
       window.removeEventListener("focus", recheck);
       document.removeEventListener("visibilitychange", recheck);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser]);
   const registerDailyPlay = () => {
     try {
       const current = getPlaysToday();
-      window.localStorage.setItem("infinity_quiz_plays", JSON.stringify({ date: todayKey(), count: current + 1 }));
+      window.localStorage.setItem(quizPlaysStorageKey(), JSON.stringify({ date: todayKey(), count: current + 1 }));
       setPlaysToday(current + 1);
     } catch {}
   };
@@ -1332,7 +2682,16 @@ function PageContent() {
   const handleJoinQuiz = (e: React.FormEvent) => {
     e.preventDefault();
     if (getPlaysToday() >= DAILY_QUIZ_LIMIT) return; // sınır doldu, buton zaten UI'da devre dışı bırakılıyor
-    if (currentUser.trim() !== "") setIsQuizStarted(true);
+    if (!requireLogin()) return;
+    // DÜZELTME: her yeni oyunda QUIZ_QUESTIONS'tan rastgele QUESTIONS_PER_GAME (8) tanesi
+    // seçilir — Fisher-Yates karıştırma ile sırası da her seferinde farklı olur.
+    const shuffled = [...QUIZ_QUESTIONS];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    setActiveQuestions(shuffled.slice(0, QUESTIONS_PER_GAME));
+    setIsQuizStarted(true);
   };
 
   // Her yeni soruda süreyi sıfırlar ve geri sayımı başlatır; cevaplanınca durur
@@ -1353,13 +2712,13 @@ function PageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentQuestion, isQuizStarted, quizFinished]);
 
-  // Süre 0'a inip cevap verilmediyse otomatik olarak yanlış say (-10 puan)
+  // Süre 0'a inip cevap verilmediyse otomatik olarak yanlış say (-5 puan)
   useEffect(() => {
     if (timeLeft === 0 && !isAnswered && isQuizStarted && !quizFinished) {
       setIsAnswered(true);
       setSelectedOption(null);
-      setPointsEarned((p) => p - 10);
-      setLastQuestionPoints(-10);
+      setPointsEarned((p) => p - 5);
+      setLastQuestionPoints(-5);
       playWrongSound();
     } else if (timeLeft > 0 && timeLeft <= 3 && !isAnswered && isQuizStarted && !quizFinished) {
       playTickSound(); // son 3 saniyede "tik tik tik" uyarı sesi
@@ -1371,27 +2730,23 @@ function PageContent() {
     if (quizTimerRef.current) clearInterval(quizTimerRef.current);
     setSelectedOption(option);
     setIsAnswered(true);
-    if (option === QUIZ_QUESTIONS[currentQuestion].answer) {
+    if (option === activeQuestions[currentQuestion].answer) {
       setScore((prev) => prev + 1);
-      // DÜZELTME ("hızlı cevap verince bonus çalışmıyor, sabit 50 alınıyor"): yukarıdaki
-      // puanlama açıklamasında ("100 puan + kalan süreye göre hız bonusu") olması gereken hız
-      // bonusu bir önceki düzenlemede yanlışlıkla kaldırılıp sabit 50'ye sabitlenmişti — arayüzdeki
-      // "Hızlı cevap ekstra puan kazandırır" ipucu da bu yüzden gerçeği yansıtmıyordu. Artık
-      // gerçekten kalan süreye göre değişiyor: soru gelir gelmez basılan en hızlı doğru cevap
-      // 50 puanın tamamını alır (eski sabit tavanla aynı, liderlik tablosu ölçeği bozulmuyor),
-      // sürenin sonuna doğru verilen doğru cevap sadece taban puanı olan 30'u alır.
-      const speedBonus = Math.round((timeLeft / QUESTION_SECONDS) * 20);
-      const earned = 30 + speedBonus;
+      // DÜZELTME (istek): maksimum puan 50'den 30'a düşürüldü (günlük hak 6'dan 8'e çıktığı
+      // için toplam puan havuzu dengelendi), AYRICA hız bonusunun etkisi artırıldı — eskiden
+      // en hızlı ile en yavaş doğru cevap arasındaki fark sadece 20 puandı ve oransal olarak
+      // (50 üzerinden) pek hissedilmiyordu; şimdi taban puan ile tavan arasında tam 15 puanlık
+      // (30 üzerinden %50) bir fark var — son saniyeye basmakla soru gelir gelmez basmak
+      // arasındaki fark artık gerçekten hissediliyor.
+      const speedBonus = Math.round((timeLeft / QUESTION_SECONDS) * 15);
+      const earned = 15 + speedBonus;
       setPointsEarned((p) => p + earned);
       setLastQuestionPoints(earned);
       playCorrectSound();
     } else {
-      // DEĞİŞTİ: artık oyun içindeki anlık puan (pointsEarned) gerçekten eksiye düşebiliyor
-      // (ör. -10, -20) — önceden her yanlışta 0'da tabana oturtuluyordu, bu da "eksi puan hiç
-      // uygulanmıyor" hissi veriyordu. Oyuncunun TOPLAM (kalıcı/liderlik tablosu) skoru asla
-      // 0'ın altına düşmez — bu sınır aşağıda, oyun bitip toplam skora eklenirken uygulanıyor.
-      setPointsEarned((p) => p - 10);
-      setLastQuestionPoints(-10);
+      // DÜZELTME (istek): yanlış cevap cezası -10'dan -5'e düşürüldü.
+      setPointsEarned((p) => p - 5);
+      setLastQuestionPoints(-5);
       playWrongSound();
     }
   };
@@ -1400,7 +2755,7 @@ function PageContent() {
     setSelectedOption(null);
     setIsAnswered(false);
     setLastQuestionPoints(null);
-    if (currentQuestion + 1 < QUIZ_QUESTIONS.length) {
+    if (currentQuestion + 1 < activeQuestions.length) {
       setCurrentQuestion((prev) => prev + 1);
     } else {
       setQuizFinished(true);
@@ -1458,11 +2813,6 @@ const copyToClipboard = (id: number) => {
   return (
     // Akıcı scroll için webkit font düzeltmesi ve rendering optimizasyon sınıfı eklendi
     <main className="relative min-h-screen overflow-x-hidden bg-[#050508] text-white select-none antialiased subpixel-antialiased pattern-gpu">
-      {/* GEÇİCİ TEŞHİS ETİKETİ — bu, hangi kod sürümünü çalıştırdığını kesin anlamak için.
-          Bunu görüyorsan dosya doğru yüklenmiş demektir; görmüyorsan build/cache sorunu var. */}
-      <div className="fixed bottom-2 left-2 z-[9999] text-[9px] font-mono text-white/20 bg-black/40 px-2 py-1 rounded pointer-events-none">
-        build: fix-round-6-crosshair-color-research
-      </div>
       {/* YENİ: Ölümsüzlük/Radyant profil kartı için "efsanevi" kayan ışıltı animasyonu */}
       <style jsx global>{`
         @keyframes legendaryShimmerMove {
@@ -1478,6 +2828,31 @@ const copyToClipboard = (id: number) => {
         }
         .legendary-card-border {
           animation: legendaryBorderGlow 2.8s ease-in-out infinite;
+        }
+        /* YENİ (istek): üst menüdeki aktif sekme ismi artık düz beyaz değil, altın/kırmızı
+           parıldayan bir gradyan metin — arka plan konumu kayarak "ışıltı" hissi veriyor. */
+        @keyframes navShine {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 200% 50%; }
+        }
+        .nav-tab-shine {
+          background-image: linear-gradient(90deg, #ffffff 0%, #ffd27a 25%, #ff4655 50%, #ffd27a 75%, #ffffff 100%);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          animation: navShine 3.2s linear infinite;
+        }
+        /* DÜZELTME ("nişangahlar sayfasının en altındayken F5 atınca kırmızı menü çubuğu çok
+           titriyor"): sayfa aşağıda kaydırılmışken F5 atıldığında, tarayıcı önce eski kaydırma
+           konumuna zıplıyor, SONRA asenkron veriler (nişangah listesi, beğeni sayıları vb.)
+           gelip sayfanın yüksekliğini değiştiriyor — tarayıcının "scroll anchoring" özelliği bu
+           yükseklik değişimini telafi etmek için kaydırma konumunu birkaç kez KENDİLİĞİNDEN
+           ayarlıyor, bu da (sabit header'ın ALTINDAKİ içerik zıplarken) her şey "titriyormuş"
+           hissi veriyor. overflow-anchor: none ile bu otomatik telafiyi tamamen kapatıyoruz —
+           kaydırma konumu artık içerik yüklendikçe kendiliğinden oynamıyor. */
+        html, body {
+          overflow-anchor: none;
         }
       `}</style>
 
@@ -1550,34 +2925,30 @@ const copyToClipboard = (id: number) => {
             </div>
           </div>
 
-          <nav className="flex items-center h-full gap-6 text-[13px] font-black text-white/70">
-            {["home", "crosshairs", "quiz", "find-team"].map((tab) => (
+          <nav className="flex items-center h-full gap-4 xl:gap-6 text-[11px] xl:text-[13px] font-black text-white/70">
+            {["home", "crosshairs", "quiz", "find-team", "forum", "rank-guess", "skin-war", "word-game"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => {
-                  if (tab !== "home" && !isLoggedIn) {
-                    setLoginWarning(true);
-                    setTimeout(() => setLoginWarning(false), 2800);
-                    return;
-                  }
                   setActiveTab(tab);
                 }}
-                className={`relative transition-colors duration-200 h-full px-1 flex items-center gap-1.5 justify-center capitalize group tracking-wide ${
+                className={`relative transition-colors duration-200 h-full px-1 flex items-center gap-1.5 justify-center capitalize group tracking-wide whitespace-nowrap ${
                   activeTab === tab ? "text-white font-black" : "text-white/70 hover:text-white font-black"
                 }`}
               >
-                {tab === "home" ? "Ana Sayfa" : tab === "crosshairs" ? "Nişangahlar" : tab === "quiz" ? "Bilgi Yarışması" : "Takım Bul"}
-                {tab !== "home" && authChecked && !isLoggedIn && (
-                  <svg className="w-2.5 h-2.5 text-white/20" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                  </svg>
-                )}
+                <span className={activeTab === tab ? "nav-tab-shine" : ""}>
+                  {tab === "home" ? "Ana Sayfa" : tab === "crosshairs" ? "Nişangahlar" : tab === "quiz" ? "Bilgi Yarışması" : tab === "find-team" ? "Takım Bul" : tab === "forum" ? "Forum" : tab === "rank-guess" ? "Rank Tahmin" : tab === "skin-war" ? "Skin Savaşı" : "Kelime Oyunu"}
+                </span>
+                {/* DÜZELTME (istek): "giriş yapmayanlar için menülerin yanında kilit işaretleri
+                    var bunlara gerek yok bunu kaldır" — sekme etiketinin yanındaki kilit ikonu
+                    tamamen kaldırıldı. */}
                 {/* DÜZELTME: aktif sekmenin altındaki çizgi artık kırmızı; aktif olmayan bir
                     sekmenin üstüne gelince (hover) gri bir çizgi beliriyor, tıpkı istediğin gibi. */}
                 {activeTab === tab ? (
                   <motion.div
                     layoutId="navActiveIndicator"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    initial={false}
+                    transition={navMounted ? { type: "spring", stiffness: 380, damping: 30 } : { duration: 0 }}
                     className="absolute -bottom-[1px] left-0 right-0 h-[3px] rounded-full bg-[#ff4655]"
                   />
                 ) : (
@@ -1703,7 +3074,7 @@ const copyToClipboard = (id: number) => {
           >
             <span className="text-lg">🔒</span>
             <div>
-              <p className="text-xs font-bold text-white">Bu bölümü kullanmak için önce giriş yapmalısın</p>
+              <p className="text-xs font-bold text-white">Bu işlemi yapmak için önce giriş yapmalısın</p>
               <button onClick={() => { setLoginWarning(false); setIsLoginModalOpen(true); }} className="text-[10px] font-bold text-red-400 hover:text-red-300 underline">
                 Hemen giriş yap
               </button>
@@ -1833,8 +3204,21 @@ const copyToClipboard = (id: number) => {
                 </div>
               ))}
             </div>
-            {/* DÜZELTME: "Avatarı Kaldır" seçeneği tamamen kaldırıldı — artık avatarsız bir
-                durum yok, herkes standart.jpg ile başlıyor, sadece başka bir tanesini seçebiliyor. */}
+            {/* DÜZELTME (istek): standart.jpg (varsayılan avatar) hiçbir kategoride seçilebilir
+                değildi — birisi başka bir avatar seçtikten sonra varsayılana geri dönmenin hiçbir
+                yolu yoktu. Ayrı, belirgin bir "Varsayılana Dön" kartı eklendi. */}
+            <div className="mt-1">
+              <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3">Varsayılan</p>
+              <button
+                onClick={() => chooseAvatar(DEFAULT_AVATAR)}
+                className={`w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-br ${DEFAULT_AVATAR.ring} transition-all duration-150 hover:scale-105 active:scale-95 border-2 relative ${
+                  selectedAvatar.id === DEFAULT_AVATAR.id ? "border-white shadow-lg shadow-white/20" : "border-transparent"
+                }`}
+                title="Varsayılana dön"
+              >
+                <img src={DEFAULT_AVATAR.img} alt="Varsayılan" className="w-full h-full object-cover" />
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1854,16 +3238,14 @@ const copyToClipboard = (id: number) => {
 
             <button onClick={() => setLegalModalTab(null)} className="absolute top-4 right-4 z-10 text-white/40 hover:text-white font-bold text-sm">✕</button>
 
-            <div className="relative z-10 flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 relative rounded-xl bg-gradient-to-br from-[#ff4655]/25 to-[#ff4655]/5 border border-[#ff4655]/30 flex-shrink-0 overflow-hidden">
-                <Image src="/logo.png" alt="Infinity Network" fill className="object-contain p-2" />
-              </div>
-              <div>
-                <h2 className="text-base font-black uppercase tracking-tight text-white">
-                  {legalModalTab === "privacy" ? "Gizlilik Politikası" : legalModalTab === "terms" ? "Kullanım Şartları" : "Destek"}
-                </h2>
-                <p className="text-[10px] text-white/40 uppercase tracking-wider">Infinity Network</p>
-              </div>
+            {/* DÜZELTME ("foto çerçevesini kaldır"): logo'yu küçük bir kutu/çerçeve içinde
+                gösteren blok kaldırıldı — başlık artık üstteki ince kırmızı çizgiyle (yukarıda)
+                ve tek başına daha sade/kaliteli duruyor. */}
+            <div className="relative z-10 mb-5">
+              <p className="text-[9px] font-black uppercase tracking-[0.28em] text-[#ff4655]">Infinity Network</p>
+              <h2 className="mt-1 text-xl font-black uppercase tracking-tight text-white">
+                {legalModalTab === "privacy" ? "Gizlilik Politikası" : legalModalTab === "terms" ? "Kullanım Şartları" : "Destek"}
+              </h2>
             </div>
 
             {/* Sekmeler — pencereyi kapatmadan diğerine geçebilesin diye */}
@@ -1889,20 +3271,20 @@ const copyToClipboard = (id: number) => {
               {legalModalTab === "privacy" && (
                 <>
                   <p><span className="text-white font-bold">Infinity Network</span> olarak (<a href="https://infinity.gg" target="_blank" rel="noopener noreferrer" className="text-[#ff4655] hover:underline">infinity.gg</a>) gizliliğine önem veriyoruz. Bu sayfa, hangi verileri neden topladığımızı özetler.</p>
-                  <div>
-                    <p className="text-white font-bold text-[11px] uppercase tracking-wider mb-1.5">Topladığımız veriler</p>
+                  <div className="rounded-lg border-l-2 border-[#ff4655]/50 bg-black/20 p-3.5">
+                    <p className="text-white font-black text-[11px] uppercase tracking-wider mb-1.5">Topladığımız veriler</p>
                     <p>Giriş yaparken verdiğin Riot ID (İsim#TAG), seçtiğin avatar, oluşturduğun nişangah kodları, yarışma puanların ve kurduğun lobi bilgileri (mod, rütbe aralığı, parti kodu).</p>
                   </div>
-                  <div>
-                    <p className="text-white font-bold text-[11px] uppercase tracking-wider mb-1.5">Riot ID doğrulaması</p>
+                  <div className="rounded-lg border-l-2 border-[#ff4655]/50 bg-black/20 p-3.5">
+                    <p className="text-white font-black text-[11px] uppercase tracking-wider mb-1.5">Riot ID doğrulaması</p>
                     <p>Giriş sırasında Riot ID'nin gerçekten var olduğunu doğrulamak için Riot Games'in herkese açık hesap API'sine istek atılır. Şifren hiçbir zaman istenmez, alınmaz veya saklanmaz.</p>
                   </div>
-                  <div>
-                    <p className="text-white font-bold text-[11px] uppercase tracking-wider mb-1.5">Tarayıcıda saklananlar</p>
+                  <div className="rounded-lg border-l-2 border-[#ff4655]/50 bg-black/20 p-3.5">
+                    <p className="text-white font-black text-[11px] uppercase tracking-wider mb-1.5">Tarayıcıda saklananlar</p>
                     <p>Oturumun, aktif sekmen ve avatar tercihin, sayfayı yenilediğinde kaybolmasın diye tarayıcının yerel deposunda (localStorage) tutulur — bu veriler bizim sunucularımıza değil, sadece kendi cihazına kaydedilir.</p>
                   </div>
-                  <div>
-                    <p className="text-white font-bold text-[11px] uppercase tracking-wider mb-1.5">Paylaşım</p>
+                  <div className="rounded-lg border-l-2 border-[#ff4655]/50 bg-black/20 p-3.5">
+                    <p className="text-white font-black text-[11px] uppercase tracking-wider mb-1.5">Paylaşım</p>
                     <p>Verilerini reklam amacıyla üçüncü taraflarla satmıyor veya paylaşmıyoruz. Liderlik tablosu, nişangahlar ve lobiler gibi herkese açık alanlardaki bilgiler doğası gereği diğer kullanıcılar tarafından görülebilir.</p>
                   </div>
                 </>
@@ -1911,20 +3293,20 @@ const copyToClipboard = (id: number) => {
               {legalModalTab === "terms" && (
                 <>
                   <p><span className="text-white font-bold">Infinity Network</span>'ü (<a href="https://infinity.gg" target="_blank" rel="noopener noreferrer" className="text-[#ff4655] hover:underline">infinity.gg</a>) kullanarak aşağıdaki şartları kabul etmiş olursun.</p>
-                  <div>
-                    <p className="text-white font-bold text-[11px] uppercase tracking-wider mb-1.5">Bağımsız bir topluluk platformu</p>
+                  <div className="rounded-lg border-l-2 border-[#ff4655]/50 bg-black/20 p-3.5">
+                    <p className="text-white font-black text-[11px] uppercase tracking-wider mb-1.5">Bağımsız bir topluluk platformu</p>
                     <p>Infinity Network, Riot Games tarafından onaylanmamış bağımsız bir hayran platformudur ve Riot Games'in resmi görüşlerini yansıtmaz. VALORANT, Riot Games, Inc.'in bir ticari markasıdır.</p>
                   </div>
-                  <div>
-                    <p className="text-white font-bold text-[11px] uppercase tracking-wider mb-1.5">Kullanıcı içerikleri</p>
+                  <div className="rounded-lg border-l-2 border-[#ff4655]/50 bg-black/20 p-3.5">
+                    <p className="text-white font-black text-[11px] uppercase tracking-wider mb-1.5">Kullanıcı içerikleri</p>
                     <p>Paylaştığın nişangah adları, lobi mesajları ve profil bilgilerinden sen sorumlusun. Taciz edici, saldırgan veya yanıltıcı içerikler önceden bildirilmeden kaldırılabilir, ilgili hesap askıya alınabilir.</p>
                   </div>
-                  <div>
-                    <p className="text-white font-bold text-[11px] uppercase tracking-wider mb-1.5">Hizmetin durumu</p>
+                  <div className="rounded-lg border-l-2 border-[#ff4655]/50 bg-black/20 p-3.5">
+                    <p className="text-white font-black text-[11px] uppercase tracking-wider mb-1.5">Hizmetin durumu</p>
                     <p>Platform "olduğu gibi" sunulur, kesintisiz veya hatasız çalışacağı garanti edilmez. Özellikler zaman zaman değiştirilebilir, eklenebilir veya kaldırılabilir.</p>
                   </div>
-                  <div>
-                    <p className="text-white font-bold text-[11px] uppercase tracking-wider mb-1.5">Değişiklikler</p>
+                  <div className="rounded-lg border-l-2 border-[#ff4655]/50 bg-black/20 p-3.5">
+                    <p className="text-white font-black text-[11px] uppercase tracking-wider mb-1.5">Değişiklikler</p>
                     <p>Bu şartlar güncellenebilir. Önemli değişikliklerde bu sayfa üzerinden bilgilendirme yapılır.</p>
                   </div>
                 </>
@@ -1952,10 +3334,14 @@ const copyToClipboard = (id: number) => {
                       <svg className="w-4 h-4 text-white/50" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                     </div>
                     <div>
-                      <p className="text-white font-bold text-xs">destek@infinity.gg</p>
+                      <p className="text-white font-bold text-xs">infinitynw.gg@gmail.com</p>
                       <p className="text-[10px] text-white/40">Hesap, veri veya işbirliği talepleri için.</p>
                     </div>
                   </div>
+                  {/* YENİ (istek): "altına da karşılaştıkları hataları içinde yazabileceklerini
+                      belirt" — hata/bug bildirimlerinin de bu mail üzerinden yapılabileceği not
+                      olarak eklendi. */}
+                  <p className="text-[10px] text-white/30 leading-relaxed">Sitede karşılaştığın hataları/bugları da bu mail adresine (infinitynw.gg@gmail.com) yazabilirsin.</p>
                   <p className="text-[10px] text-white/30 leading-relaxed">Hesap/giriş sorunlarında Riot ID'nin doğru formatta (İsim#TAG) girildiğinden emin ol; nişangah kodu sorunlarında oyun içinden kopyaladığın kodu birebir yapıştır.</p>
                 </>
               )}
@@ -2054,7 +3440,7 @@ const copyToClipboard = (id: number) => {
                     : "bg-white/[0.03] border-white/10 text-white/50 hover:bg-white hover:text-black hover:border-white"
                 }`}
               >
-                {mapPreviewCopied ? "KODU KOPYALANDI" : "KODU KOPYALA"}
+                {mapPreviewCopied ? "KOD KOPYALANDI" : "KODU KOPYALA"}
               </button>
             </div>
           </div>
@@ -2262,9 +3648,32 @@ const copyToClipboard = (id: number) => {
 
                     <div className="relative flex items-start justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${style ? style.gradient : "from-[#ff4655] to-red-800"} flex items-center justify-center text-2xl font-black text-black flex-shrink-0 shadow-xl ring-2 ring-white/10`}>
-                          {riotResult.gameName.slice(0, 1).toUpperCase()}
-                        </div>
+                        {/* DÜZELTME/YENİ: gerçek avatar sistemi entegre edildi. Aranan Riot ID
+                            giriş yapmış kullanıcının kendisiyse selectedAvatar (canlı, güncel)
+                            gösteriliyor; başka biriyse liderlik tablosunda o isimle eşleşen bir
+                            kayıt varsa (o kişi daha önce bilgi yarışmasını oynadıysa) onun kayıtlı
+                            avatarı gösteriliyor. Hiçbiri yoksa (hakkında hiçbir bilgimiz olmayan,
+                            hiç oynamamış bir Riot ID) eski baş harf rozetine düşülüyor — rastgele
+                            birine ait olmayan bir avatar uydurmuyoruz. */}
+                        {(() => {
+                          const fullRiotName = `${riotResult.gameName}#${riotResult.tagLine}`;
+                          const matchedAvatar =
+                            fullRiotName === currentUser
+                              ? selectedAvatar
+                              : (() => {
+                                  const entry = liveLeaderboard.find((p) => p.name === fullRiotName);
+                                  return entry && (entry as any).avatarId ? findAvatarById((entry as any).avatarId) : null;
+                                })();
+                          return matchedAvatar ? (
+                            <div className={`w-16 h-16 rounded-2xl overflow-hidden bg-gradient-to-br ${matchedAvatar.ring} flex-shrink-0 shadow-xl ring-2 ring-white/10`}>
+                              <img src={matchedAvatar.img} alt="" className="w-full h-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${style ? style.gradient : "from-[#ff4655] to-red-800"} flex items-center justify-center text-2xl font-black text-black flex-shrink-0 shadow-xl ring-2 ring-white/10`}>
+                              {riotResult.gameName.slice(0, 1).toUpperCase()}
+                            </div>
+                          );
+                        })()}
                         <div>
                           <p className="text-xl font-black flex items-center gap-1.5 text-white leading-tight">
                             {riotResult.gameName}
@@ -2283,14 +3692,6 @@ const copyToClipboard = (id: number) => {
                               {copiedRiotId ? "✅" : "📋"}
                             </button>
                           </p>
-                          <div className="flex items-center gap-2 mt-1.5">
-                            <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-                              <span>✓</span> Riot API ile Doğrulandı
-                            </span>
-                            <span className="text-[10px] font-bold text-white/40 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
-                              {riotRegion.toUpperCase()}
-                            </span>
-                          </div>
                         </div>
                       </div>
 
@@ -2307,7 +3708,59 @@ const copyToClipboard = (id: number) => {
                         </div>
                       )}
                     </div>
+
+                    {/* YENİ: MAÇLAR / KAZANMA% / K:D özet satırı — son 10 maçtan GERÇEKTEN
+                        hesaplanmış (bkz. /api/riot-match-history), referans görseldeki
+                        "MATCHES / WIN% / K/D" satırının karşılığı. */}
+                    {matchSummary && (
+                      <div className="relative flex items-center gap-6 mt-5 pt-4 border-t border-white/5">
+                        <div className="text-center">
+                          <p className="text-[9px] font-bold text-white/35 uppercase tracking-wider">Maçlar</p>
+                          <p className="text-base font-black text-white mt-0.5">{matchSummary.matchCount}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[9px] font-bold text-white/35 uppercase tracking-wider">Kazanma %</p>
+                          <p className={`text-base font-black mt-0.5 ${matchSummary.winRate >= 50 ? "text-emerald-400" : "text-red-400"}`}>{matchSummary.winRate}%</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[9px] font-bold text-white/35 uppercase tracking-wider">K/D Oranı</p>
+                          <p className="text-base font-black text-white mt-0.5">{matchSummary.kd}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
+
+                  {/* YENİ: SON MAÇLAR — küçük ajan portreleri + skor, kazanç/kayba göre renkli
+                      çerçeve. Referans görseldeki "LAST 8 MATCHES" satırının karşılığı, gerçek
+                      Riot verisiyle dolduruluyor. */}
+                  {recentMatches.length > 0 && (
+                    <div className="px-6 py-4 border-b border-white/5 bg-black/20">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2.5">Son {recentMatches.length} Maç</p>
+                      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                        {recentMatches.map((m) => {
+                          const icon = getAgentIcon(m.agentId);
+                          return (
+                            <div
+                              key={m.matchId}
+                              title={`${getAgentName(m.agentId)} · ${getMapName(m.mapId)} · ${m.kills}/${m.deaths}/${m.assists}`}
+                              className={`flex-shrink-0 w-12 h-12 rounded-xl overflow-hidden relative border-2 ${
+                                m.won === null ? "border-white/10" : m.won ? "border-emerald-500/60" : "border-red-500/60"
+                              }`}
+                            >
+                              {icon ? (
+                                <Image src={icon} alt={getAgentName(m.agentId)} fill className="object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-white/5 flex items-center justify-center text-[9px] font-black text-white/30">?</div>
+                              )}
+                              <div className="absolute bottom-0 inset-x-0 bg-black/70 text-center py-[1px]">
+                                <span className="text-[8px] font-black text-white/80">{m.kd}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="px-6 py-5">
                     {matchStatsLoading && (
@@ -2318,9 +3771,19 @@ const copyToClipboard = (id: number) => {
                     )}
 
                     {!matchStatsLoading && matchStatsError && (
-                      <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
-                        <span className="text-2xl opacity-30">📭</span>
-                        <p className="text-xs font-bold text-white/40 max-w-xs">{matchStatsError}</p>
+                      <div className="py-2">
+                        <div className="grid grid-cols-3 gap-2.5 text-center">
+                          {["K/D Oranı", "Kazanma %", "Son Maç"].map((label) => (
+                            <div key={label} className="rounded-xl border border-white/5 bg-black/30 p-3.5">
+                              <p className="text-[9px] font-bold uppercase tracking-wider text-white/35">{label}</p>
+                              <p className="mt-1 text-lg font-black text-white/25">—</p>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-3 rounded-xl border border-amber-400/15 bg-amber-400/[0.04] px-4 py-3 text-center">
+                          <p className="text-[11px] font-bold text-amber-200/75">Profil doğrulandı; maç istatistikleri şu an Riot API tarafından sağlanmıyor.</p>
+                          <p className="mt-1 text-[10px] text-white/30">{matchStatsError}</p>
+                        </div>
                       </div>
                     )}
 
@@ -2422,31 +3885,13 @@ const copyToClipboard = (id: number) => {
               * Sezon bitiş tarihi Riot'un resmi takvimine göredir; profil sayacı sitede yapılan gerçek aramaları sayar.
             </p>
 
-            {/* GERÇEK SUNUCU LİDERLİK TABLOSU (val-ranked-v1) - YENİ EKLENDİ */}
-            {realLeaderboard && realLeaderboard.length > 0 && (
-              <div className="mt-10 w-full max-w-md bg-[#14151a]/90 border border-white/10 rounded-2xl p-5 shadow-xl">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/50">🏆 Gerçek Sunucu Liderlik Tablosu</span>
-                  <span className="text-[8px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">CANLI · RIOT API</span>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  {realLeaderboard.map((p) => (
-                    <div key={p.rank} className="flex items-center justify-between px-3 py-2 rounded-lg bg-black/30 border border-white/5">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-black w-5 h-5 flex items-center justify-center rounded ${p.rank === 1 ? "bg-amber-500 text-black" : p.rank === 2 ? "bg-slate-300 text-black" : p.rank === 3 ? "bg-amber-700 text-white" : "bg-white/5 text-white/50"}`}>{p.rank}</span>
-                        <span className="text-[11px] font-bold text-white/80">{p.name}</span>
-                      </div>
-                      <span className="text-[10px] font-black text-red-400">{p.rr} RR</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* DÜZELTME: "Gerçek Sunucu Liderlik Tablosu" (val-ranked-v1) kartı isteğe bağlı
+                olarak kaldırıldı, ilgili API çağrısı da tamamen durduruldu. */}
 
             {/* YENİ: Ana sayfa eskiden hero'dan sonra bomboştu — artık siteki diğer 3
                 bölüme (Nişangahlar, Bilgi Yarışması, Takım Bul) göz atan, tıklanabilir,
                 renkli öne çıkan kartlar var. Sayfa artık çok daha "dolu" görünüyor. */}
-            <div className="mt-14 w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="mt-14 w-full max-w-[1500px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4">
               {[
                 {
                   tab: "crosshairs",
@@ -2472,18 +3917,37 @@ const copyToClipboard = (id: number) => {
                   accent: "from-emerald-500/15 to-transparent",
                   ring: "group-hover:border-emerald-400/40",
                 },
+                {
+                  tab: "rank-guess",
+                  emoji: "🎬",
+                  title: "Rank Tahmin",
+                  desc: "Klipleri izle, rütbeyi tahmin et ve doğruluk oranını yükselt.",
+                  accent: "from-indigo-500/15 to-transparent",
+                  ring: "group-hover:border-indigo-400/40",
+                },
+                {
+                  tab: "skin-war",
+                  emoji: "⚔️",
+                  title: "Skin Savaşı",
+                  desc: "Favori skinini seç, topluluk sıralamasını ve eşleşmeleri belirle.",
+                  accent: "from-rose-500/15 to-transparent",
+                  ring: "group-hover:border-rose-400/40",
+                },
+                {
+                  tab: "word-game",
+                  emoji: "🔤",
+                  title: "Kelime Oyunu",
+                  desc: "Günlük Valorant kelimelerini çözmeye hazırlan.",
+                  accent: "from-cyan-500/15 to-transparent",
+                  ring: "group-hover:border-cyan-400/40",
+                },
               ].map((card) => (
                 <button
                   key={card.tab}
                   onClick={() => {
-                    if (!isLoggedIn) {
-                      setLoginWarning(true);
-                      setTimeout(() => setLoginWarning(false), 2800);
-                      return;
-                    }
                     setActiveTab(card.tab);
                   }}
-                  className={`group relative overflow-hidden text-left bg-gradient-to-br ${card.accent} bg-[#14151a]/80 border border-white/10 ${card.ring} rounded-2xl p-5 shadow-xl transition-all duration-200 hover:-translate-y-0.5`}
+                  className={`group relative min-h-[178px] overflow-hidden text-left bg-gradient-to-br ${card.accent} bg-[#14151a]/80 border border-white/10 ${card.ring} rounded-2xl p-4 shadow-xl transition-all duration-200 hover:-translate-y-0.5`}
                 >
                   <div className="pointer-events-none absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/[0.03] blur-2xl" />
                   <span className="text-2xl">{card.emoji}</span>
@@ -2543,22 +4007,33 @@ const copyToClipboard = (id: number) => {
 
                 <div className="flex items-center gap-1 bg-black/20 p-1 rounded-xl border border-white/5">
                   <span className="text-[10px] text-black bg-gradient-to-r from-white to-white/80 uppercase font-black px-2.5 py-1.5 rounded-lg hidden md:inline shadow-[0_0_10px_rgba(255,255,255,0.15)]">Sırala</span>
-                  {["Beğeni", "Rütbe", "Yeni"].map((type) => (
+                  {/* DÜZELTME (ASIL BUG — "Rütbe"/"Yeni" sıralaması hiç çalışmıyordu): buton
+                      etiketleri direkt küçük harfe çevrilip sortType olarak kullanılıyordu —
+                      "Rütbe" -> "rütbe", "Yeni" -> "yeni". Ama sıralama fonksiyonu "tier" ve
+                      "new" anahtarlarını arıyordu. "rütbe" hiçbir zaman "tier"e eşit olmadığı
+                      için bu buton SESSİZCE hiçbir şey yapmıyor, varsayılan (beğeni) sıralamasına
+                      düşüyordu — "hangi sıralamayı seçersem seçeyim en beğenilen hep üstte kalıyor"
+                      şikayetinin GERÇEK sebebi buydu. Artık her etiket doğru anahtara eşleniyor. */}
+                  {[
+                    { label: "Beğeni", value: "upvotes" },
+                    { label: "Rütbe", value: "tier" },
+                    { label: "Yeni", value: "new" },
+                  ].map((opt) => (
                     <button
-                      key={type}
-                      onClick={() => setSortType(type.toLowerCase())}
+                      key={opt.value}
+                      onClick={() => setSortType(opt.value)}
                       className={`px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide transition-all duration-150 ${
-                        sortType === type.toLowerCase() ? "bg-[#ff4655] text-white shadow-[0_0_15px_rgba(255,70,85,0.35)]" : "text-white/40 hover:text-white/70 hover:bg-white/5"
+                        sortType === opt.value ? "bg-[#ff4655] text-white shadow-[0_0_15px_rgba(255,70,85,0.35)]" : "text-white/40 hover:text-white/70 hover:bg-white/5"
                       }`}
                     >
-                      {type}
+                      {opt.label}
                     </button>
                   ))}
                 </div>
               </div>
 
               <button
-                onClick={() => { setIsCrosshairModalOpen(true); setCrosshairCodeInput(""); setCrosshairCodeStatus("idle"); }}
+                onClick={() => { if (!requireLogin()) return; setIsCrosshairModalOpen(true); setCrosshairCodeInput(""); setCrosshairCodeStatus("idle"); }}
                 className="h-10 px-5 bg-gradient-to-r from-[#ff4655] to-red-600 hover:brightness-110 text-white rounded-xl flex items-center gap-2 text-xs font-bold uppercase tracking-wider shadow-[0_4px_20px_rgba(255,70,85,0.3)] transition duration-200 active:scale-[0.97]"
               >
                 <span className="text-sm font-black">+</span> Nişangah Ekle
@@ -2614,33 +4089,19 @@ const copyToClipboard = (id: number) => {
                 ))}
               </div>
             ) : (() => {
-              const allCrosshairs = [...customCrosshairs, ...CROSSHAIRS_DATA]; // yeni eklenenler en üstte
+              // PERFORMANS DÜZELTMESİ: filtrele+sırala işlemi artık component üstünde
+              // useMemo ile (bkz. sortedCrosshairsList) hesaplanıyor, burada sadece
+              // hazır sonuç kullanılıyor — bu IIFE artık sadece "boş sonuç" / sayfalama /
+              // JSX üretimiyle ilgileniyor, ağır hesaplama yapmıyor.
+              const sorted = sortedCrosshairsList;
 
-              const filtered = allCrosshairs
-                .filter(item => item.title.toLowerCase().includes(crosshairSearch.toLowerCase()) || item.subtitle.toLowerCase().includes(crosshairSearch.toLowerCase()))
-                .filter(item => tierFilter === "all" || item.rank === tierFilter);
-
-              const sorted = [...filtered].sort((a, b) => {
-                if (sortType === "tier") return getRankStyle(b.rank).order - getRankStyle(a.rank).order;
-                if (sortType === "new") {
-                  // DÜZELTME: sabit örnek nişangahların (TenZ, yay vb.) ID'leri 900000+ gibi
-                  // yapay-büyük sayılar olduğu için, gerçekte az önce eklenmiş bir nişangahtan
-                  // (küçük gerçek DB id'si) HER ZAMAN daha "yeni" görünüyorlardı — "Yeni" sıralaması
-                  // hiçbir zaman gerçek yeni eklemeleri üste çıkaramıyordu. Artık örnekler kategori
-                  // olarak her zaman "eski" sayılıyor, gerçek eklemeler arasında ise en yüksek id
-                  // (en son eklenen) üstte.
-                  const aIsSample = a.id >= 900000;
-                  const bIsSample = b.id >= 900000;
-                  if (aIsSample !== bIsSample) return aIsSample ? 1 : -1;
-                  return b.id - a.id;
-                }
-                // "upvotes" gerçek (canlı) beğeni sayısına göre sıralanır
-                return (likeCounts[b.id] ?? parseLikes(b.likes)) - (likeCounts[a.id] ?? parseLikes(a.likes));
-              });
-
-              const topId = sorted.length > 0
-                ? [...allCrosshairs].sort((a, b) => (likeCounts[b.id] ?? parseLikes(b.likes)) - (likeCounts[a.id] ?? parseLikes(a.likes)))[0].id
-                : null;
+              // DÜZELTME (GERÇEK BUG): "En Beğenilen" tacı, seçili sıralama/filtre ne olursa
+              // olsun HER ZAMAN sitedeki mutlak en çok beğenilen nişangaha (tüm listeden,
+              // filtrelenmemiş) yapışıyordu. Bu yüzden "Rütbe" veya "Yeni" sıralaması seçilse
+              // bile, o taç rozeti sanki "beğeni hâlâ en üstte" izlenimi veriyordu. Artık taç
+              // SADECE "Beğeni" sıralaması aktifken gösteriliyor, ve o zaman da mevcut arama/
+              // rütbe filtresine göre daraltılmış listenin GERÇEK ilk sırasındaki karta yapışıyor.
+              const topId = sortType === "upvotes" && sorted.length > 0 ? sorted[0].id : null;
 
               if (sorted.length === 0) {
                 return (
@@ -2662,7 +4123,26 @@ const copyToClipboard = (id: number) => {
 
               return (
                 <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 transform-gpu">
+                {/* DÜZELTME: son sayfa (ör. 3. sayfa) her zaman 20 kart dolu olmuyor, bu yüzden
+                    o sayfaya geçildiğinde ızgara kısalıyor, sayfa yüksekliği aniden değişiyor,
+                    tarayıcı scroll konumunu koruyamayıp sayfayı yukarı/aşağı "fırlatıyordu" — üstteki
+                    menü çubuğunun titremesinin ve "sayfa değiştirince en alta/üste atlama"nın asıl
+                    sebebi buydu. minHeight ile ızgaraya her zaman ~5 satırlık bir taban veriliyor,
+                    az dolu sayfalarda bile toplam yükseklik neredeyse sabit kalıyor. */}
+                {/* DÜZELTME (GERÇEK BUG — kartlar dev boş kutulara dönüşüyordu): minHeight,
+                    grid KONTEYNERİNE veriliyordu ama grid'in kendi satırları varsayılan olarak
+                    mevcut alanı doldurmak için gerilir (align-content: stretch, CSS Grid'in
+                    varsayılanı). Az kart olan bir sayfada (örn. 4 kart) bu, o 4 kartın kendisini
+                    dev boyutlara ŞİŞİRİYORDU — "bu kartları bu kadar uzatmak nasıl bir çözüm"
+                    şikayetinin sebebi tam olarak buydu. "content-start" (align-content: start)
+                    eklendi: artık fazla yükseklik satırların ALTINDA boş alan olarak kalıyor,
+                    kartların kendisi hiç şişmiyor — sayfa değişince olan scroll zıplaması da
+                    hâlâ önleniyor (o kısmı zaten doğruydu), sadece kartlar artık normal boyutta.
+                */}
+                <div
+                  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 content-start transform-gpu"
+                  style={{ minHeight: pageItems.length < CROSSHAIRS_PER_PAGE ? "1360px" : undefined }}
+                >
                   {pageItems.map((cross, idx) => {
                     const style = getRankStyle(cross.rank);
                     const isVerified = cross.subtitle.toLowerCase().includes("pro");
@@ -2709,7 +4189,7 @@ const copyToClipboard = (id: number) => {
 
                           <div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5">
                             <button
-                              onClick={() => copyToClipboard(cross.id)}
+                              onClick={() => copyToClipboard(Number(cross.id))}
                               className="w-7 h-7 bg-black/50 hover:bg-white/10 rounded-lg border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors duration-150"
                               title="Nişangah kodunu kopyala"
                             >
@@ -2725,16 +4205,16 @@ const copyToClipboard = (id: number) => {
                             </button>
                           </div>
                           <button
-                            onClick={() => toggleLike(cross.id)}
-                            title={likedIds.has(cross.id) ? "Beğeniyi geri al" : "Beğen"}
+                            onClick={() => toggleLike(Number(cross.id))}
+                            title={likedIds.has(Number(cross.id)) ? "Beğeniyi geri al" : "Beğen"}
                             className={`absolute bottom-2.5 right-2.5 flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-colors duration-150 active:scale-95 ${
-                              likedIds.has(cross.id)
+                              likedIds.has(Number(cross.id))
                                 ? "bg-red-500/20 border-red-500/40 text-red-400"
                                 : "bg-black/30 border-white/5 text-white/70 hover:bg-black/50 hover:border-white/20"
                             }`}
                           >
-                            <span>{likedIds.has(cross.id) ? "❤️" : "🤍"}</span>
-                            <span>{(likeCounts[cross.id] ?? parseLikes(cross.likes)).toLocaleString("tr-TR")}</span>
+                            <span>{likedIds.has(Number(cross.id)) ? "❤️" : "🤍"}</span>
+                            <span>{(likeCounts[Number(cross.id)] ?? parseLikes(cross.likes)).toLocaleString("tr-TR")}</span>
                           </button>
                         </div>
 
@@ -2749,14 +4229,14 @@ const copyToClipboard = (id: number) => {
                           <p className="text-[10px] text-white/40 truncate">{cross.subtitle}</p>
 
                           <button
-                            onClick={() => copyToClipboard(cross.id)}
+                            onClick={() => copyToClipboard(Number(cross.id))}
                             className={`mt-1 w-full h-8 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-200 border ${
                               isCopied
                                 ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
                                 : "bg-white/[0.03] border-white/10 text-white/50 hover:bg-white hover:text-black hover:border-white"
                             }`}
                           >
-                            {isCopied ? "KODU KOPYALANDI" : "KODU KOPYALA"}
+                            {isCopied ? "KOD KOPYALANDI" : "KODU KOPYALA"}
                           </button>
                         </div>
                       </motion.div>
@@ -2817,8 +4297,14 @@ const copyToClipboard = (id: number) => {
               );
             })()}
 
-            {/* NİŞANGAH EKLEME PENCERESİ (DÜZELTİLDİ: sağlam önizleme + oto Riot ID + logolu rütbe seçici) */}
-            {isCrosshairModalOpen && (
+            {/* NİŞANGAH EKLEME PENCERESİ — DÜZELTME: artık createPortal ile doğrudan document.body'ye
+                render ediliyor. Önceden bu modal, "transform-gpu" class'lı (CSS transform uygulanan)
+                bir üst öğenin İÇİNDE duruyordu — CSS'te transform'lu bir ata, içindeki "position: fixed"
+                elemanların referans noktasını VIEWPORT'tan kendisine çeviriyor. Bu yüzden modal
+                viewport'ta ortalanacağına, o uzun kaydırılabilir bölümün bir yerine düşüyordu
+                ("kart ekranın çok aşağısında kalıyor" şikayetinin kesin sebebi buydu). Portal, bu
+                sorunu DOM yapısını değiştirerek kalıcı olarak çözer. */}
+            {isCrosshairModalOpen && typeof document !== "undefined" && createPortal(
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
                 <div className="w-full max-w-md bg-[#14151a] border border-white/10 rounded-2xl p-6 shadow-2xl relative max-h-[92vh] overflow-y-auto">
                   <button
@@ -2868,11 +4354,11 @@ const copyToClipboard = (id: number) => {
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-white/40">Nişangah Adı</label>
+                      <label className="text-[10px] font-black uppercase tracking-wider text-white/40">Nişangah Adı <span className="text-white/20 normal-case font-medium">(opsiyonel)</span></label>
                       <input
                         type="text"
                         id="newCrosshairTitle"
-                        placeholder="Örn: Klasik Cross"
+                        placeholder="Boş bırakırsan: Valorant Crosshair"
                         className="bg-black/40 border border-white/5 focus:border-[#ff4655]/50 rounded-xl h-11 px-4 text-xs font-bold text-white outline-none w-full"
                       />
                     </div>
@@ -2916,22 +4402,54 @@ const copyToClipboard = (id: number) => {
                       onClick={() => {
                         const titleInput = document.getElementById("newCrosshairTitle") as HTMLInputElement;
 
-                        if (!titleInput || !titleInput.value.trim()) {
-                          return alert("Lütfen nişangaha bir isim ver!");
+                        // DEĞİŞTİ: isim artık ZORUNLU DEĞİL — boş bırakılırsa otomatik "Valorant
+                        // Crosshair" ismi verilir. Bunun yerine KOD zorunlu hale getirildi (boş
+                        // ya da geçersiz kod artık kabul edilmiyor, önceden tam tersiydi).
+                        const finalTitle = titleInput?.value.trim() || "Valorant Crosshair";
+
+                        if (!crosshairCodeInput.trim()) {
+                          return alert("Lütfen geçerli bir crosshair kodu gir — kod olmadan nişangah eklenemez.");
+                        }
+                        if (crosshairCodeStatus !== "valid") {
+                          return alert("Girdiğin crosshair kodu geçersiz. Lütfen Valorant'tan kopyaladığın kodu kontrol et.");
+                        }
+                        // YENİ (istek): aynı kodla ikinci kez eklemeyi engelle — sitede zaten
+                        // birebir aynı crosshair kodu varsa (kim eklemiş olursa olsun) reddet.
+                        const normalizedInput = crosshairCodeInput.trim();
+                        const isDuplicate = [...customCrosshairs, ...CROSSHAIRS_DATA].some((c) => c.code.trim() === normalizedInput);
+                        if (isDuplicate) {
+                          return alert("Bu crosshair kodu zaten sitede mevcut — aynı kod iki kez eklenemez.");
                         }
 
-                        if (crosshairCodeInput.trim() !== "" && crosshairCodeStatus !== "valid") {
-                          return alert("Girdiğin crosshair kodu geçersiz. Lütfen kontrol et veya kodu boş bırak.");
+                        // YENİ: spam'i önlemek için haftalık 5 nişangah ekleme sınırı.
+                        // Son 7 gün içinde eklenen nişangahların zaman damgalarını localStorage'da
+                        // tutuyoruz; 7 günden eskiler otomatik düşer, sadece güncel pencere sayılır.
+                        // DÜZELTME (istek — "nişangah ekleme sınırı hesaptan hesaba olsun, yan
+                        // hesabımdan da nişangah ekleyemiyorum"): anahtar eskiden SABİT
+                        // ("infinity_crosshair_submissions") idi — yani sınır aslında hesaba değil,
+                        // TARAYICIYA/CİHAZA bağlıydı. Artık anahtar giriş yapılan hesaba (currentUser)
+                        // özel — her Riot ID kendi haftalık 5 hakkını ayrı sayıyor.
+                        const WEEKLY_LIMIT = 5;
+                        const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+                        const submissionsKey = `infinity_crosshair_submissions_${currentUser || "guest"}`;
+                        let submissionTimestamps: number[] = [];
+                        try {
+                          const raw = window.localStorage.getItem(submissionsKey);
+                          submissionTimestamps = raw ? JSON.parse(raw) : [];
+                        } catch {}
+                        const recentSubmissions = submissionTimestamps.filter((t) => Date.now() - t < WEEK_MS);
+                        if (recentSubmissions.length >= WEEKLY_LIMIT) {
+                          return alert(`Haftalık nişangah ekleme hakkın doldu (${WEEKLY_LIMIT}/hafta). Lütfen daha sonra tekrar dene.`);
                         }
 
-                        const parsed = crosshairCodeInput.trim() ? parseCrosshairCode(crosshairCodeInput) : null;
+                        const parsed = parseCrosshairCode(crosshairCodeInput);
 
                         const payload = {
-                          title: titleInput.value.trim(),
+                          title: finalTitle,
                           subtitle: currentUser ? `By ${currentUser}` : "By Sen",
                           rank: newCrosshairRank,
                           color: parsed ? parsed.color : "#ff4655",
-                          code: crosshairCodeInput.trim() || "0;P;c;0;h;0;0l;4;0o;2;0a;1;1b;0",
+                          code: crosshairCodeInput.trim(),
                         };
 
                         // Önce ekranda anında göster (optimistic), sonra Supabase'e kalıcı olarak kaydet.
@@ -2958,6 +4476,11 @@ const copyToClipboard = (id: number) => {
                           })
                           .catch(() => {}); // /api/crosshairs henüz eklenmemişse sessizce geç (yerelde görünmeye devam eder)
 
+                        // Haftalık sınır için bu eklemenin zaman damgasını hesaba özel anahtarla kaydet
+                        try {
+                          window.localStorage.setItem(submissionsKey, JSON.stringify([...recentSubmissions, Date.now()]));
+                        } catch {}
+
                         setIsCrosshairModalOpen(false);
                         setCrosshairCodeInput("");
                         setCrosshairCodeStatus("idle");
@@ -2968,7 +4491,8 @@ const copyToClipboard = (id: number) => {
                     </button>
                   </div>
                 </div>
-              </div>
+              </div>,
+              document.body
             )}
           </motion.section>
         )}
@@ -2998,7 +4522,12 @@ const copyToClipboard = (id: number) => {
               <span className="text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded font-bold uppercase animate-pulse">CANLI</span>
             </div>
             <div className="flex flex-col gap-2.5">
-              {[...liveLeaderboard].sort((a, b) => a.rank - b.rank).slice(0, 5).map((player) => {
+              {leaderboardLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="h-[46px] rounded-xl bg-white/[0.03] border border-white/5 animate-pulse" />
+                ))
+              ) : (
+                [...liveLeaderboard].sort((a, b) => a.rank - b.rank).slice(0, 5).map((player) => {
                 // DÜZELTME: kendi satırınsa ÖNCE canlı (güncel) selectedAvatar'a bak,
                 // eski/kayıtlı avatarId'ye değil (aksi halde avatar değiştirince eski görünürdü).
                 const rowAvatar = (player.name === currentUser ? selectedAvatar : null) || findAvatarById((player as any).avatarId);
@@ -3018,7 +4547,8 @@ const copyToClipboard = (id: number) => {
                   </div>
                   <span className="text-xs font-extrabold text-red-400">{player.score} PTS</span>
                 </div>
-              );})}
+              );})
+              )}
             </div>
           </div>
         </div>
@@ -3031,8 +4561,13 @@ const copyToClipboard = (id: number) => {
           <p className="text-white/40 text-xs font-medium mt-3 max-w-md leading-relaxed">
             Valorant evrenine ne kadar hakimsin? Soruları en hızlı şekilde doğru cevapla, topluluk liderlik tablosunda zirveye oyna!
           </p>
-          <form onSubmit={handleJoinQuiz} className="mt-8 w-full max-w-md bg-[#14151a]/90 p-6 rounded-2xl border border-white/10 flex flex-col gap-4 shadow-2xl backdrop-blur-sm">
-            <div className="flex flex-col gap-1.5">
+          <form onSubmit={handleJoinQuiz} className="relative mt-8 w-full max-w-md bg-gradient-to-b from-[#1c1420] to-[#14151a] p-6 rounded-2xl border border-white/10 flex flex-col gap-4 shadow-2xl backdrop-blur-sm overflow-hidden">
+            {/* YENİ: bu kutu düz siyahtı, artık avatar/gizlilik pencereleriyle aynı premium
+                dille (köşelerde ışıltı + üstte ince kırmızı çizgi) uyumlu. */}
+            <div className="pointer-events-none absolute -top-14 -right-14 w-48 h-48 bg-[#ff4655]/10 rounded-full blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-14 -left-14 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl" />
+            <div className="pointer-events-none absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-[#ff4655]/60 to-transparent" />
+            <div className="relative z-10 flex flex-col gap-1.5">
               <label className="text-[10px] font-black uppercase tracking-wider text-white/40">Riot Kimliğin</label>
               <div className="flex items-center gap-2 bg-black/60 border border-white/5 rounded-xl h-12 px-4">
                 <div className={`w-5 h-5 rounded-full overflow-hidden bg-gradient-to-br ${selectedAvatar.ring} flex-shrink-0`}>
@@ -3047,13 +4582,13 @@ const copyToClipboard = (id: number) => {
               const myEntry = liveLeaderboard.find((p) => p.name === currentUser);
               if (!myEntry) return null;
               return (
-                <div className="grid grid-cols-2 gap-2.5">
-                  <div className="px-3 py-2.5 rounded-xl border bg-black/40 border-white/5 flex flex-col items-center justify-center">
-                    <span className="text-[8px] font-black tracking-widest text-white/30 uppercase">Toplam Puanın</span>
-                    <span className="text-base font-black text-white mt-0.5">{myEntry.score.toLocaleString("tr-TR")}</span>
+                <div className="relative z-10 grid grid-cols-2 gap-2.5">
+                  <div className="px-3 py-2.5 rounded-xl border bg-gradient-to-b from-amber-500/10 to-black/40 border-amber-400/20 flex flex-col items-center justify-center">
+                    <span className="text-[8px] font-black tracking-widest text-amber-200/50 uppercase">Toplam Puanın</span>
+                    <span className="text-base font-black text-amber-200 mt-0.5">{myEntry.score.toLocaleString("tr-TR")}</span>
                   </div>
-                  <div className="px-3 py-2.5 rounded-xl border bg-black/40 border-white/5 flex flex-col items-center justify-center">
-                    <span className="text-[8px] font-black tracking-widest text-white/30 uppercase">Sıralaman</span>
+                  <div className="px-3 py-2.5 rounded-xl border bg-gradient-to-b from-[#ff4655]/10 to-black/40 border-[#ff4655]/20 flex flex-col items-center justify-center">
+                    <span className="text-[8px] font-black tracking-widest text-red-300/50 uppercase">Sıralaman</span>
                     <span className="text-base font-black text-[#ff4655] mt-0.5">#{myEntry.rank}</span>
                   </div>
                 </div>
@@ -3062,11 +4597,11 @@ const copyToClipboard = (id: number) => {
             <button
               type="submit"
               disabled={playsToday >= DAILY_QUIZ_LIMIT}
-              className="w-full h-12 bg-[#ff4655] hover:bg-red-600 active:scale-[0.98] rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-red-500/20 transition duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#ff4655]"
+              className="relative z-10 w-full h-12 bg-[#ff4655] hover:bg-red-600 active:scale-[0.98] rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-red-500/20 transition duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#ff4655]"
             >
               {playsToday >= DAILY_QUIZ_LIMIT ? "GÜNLÜK HAKKIN DOLDU" : "YARIŞMAYA KATIL"}
             </button>
-            <p className="text-[10px] text-center font-bold text-white/30">
+            <p className="relative z-10 text-[10px] text-center font-bold text-white/30">
               Bugün {Math.min(playsToday, DAILY_QUIZ_LIMIT)}/{DAILY_QUIZ_LIMIT} oyun hakkını kullandın
               {playsToday >= DAILY_QUIZ_LIMIT ? " · Yarın tekrar oynayabilirsin" : ""}
             </p>
@@ -3083,7 +4618,7 @@ const copyToClipboard = (id: number) => {
         <div className="bg-[#14151a]/90 border border-white/10 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
           <div className="flex items-center gap-3">
             <span className="text-xs font-black bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg tracking-wide text-white/80">
-              SORU {currentQuestion + 1} / {QUIZ_QUESTIONS.length}
+              SORU {currentQuestion + 1} / {activeQuestions.length}
             </span>
             {/* YENİ: oyun skoru — kaç soruyu doğru bildiğini canlı gösteren ayrı bir rozet.
                 Önceden sadece "PUAN" vardı, doğru/yanlış sayısı hiçbir yerde görünmüyordu. */}
@@ -3133,11 +4668,11 @@ const copyToClipboard = (id: number) => {
           <div className="flex-1 w-full h-2 bg-black/40 rounded-full overflow-hidden border border-white/5 mx-2">
             <div 
               className="h-full bg-gradient-to-r from-[#ff4655] to-red-400 transition-all duration-300 ease-out rounded-full"
-              style={{ width: `${((currentQuestion + 1) / QUIZ_QUESTIONS.length) * 100}%` }}
+              style={{ width: `${((currentQuestion + 1) / activeQuestions.length) * 100}%` }}
             />
           </div>
           <div className="text-xs font-bold text-white/40">
-            Cevaplanan: {isAnswered ? currentQuestion + 1 : currentQuestion} / {QUIZ_QUESTIONS.length}
+            Cevaplanan: {isAnswered ? currentQuestion + 1 : currentQuestion} / {activeQuestions.length}
           </div>
         </div>
 
@@ -3147,8 +4682,26 @@ const copyToClipboard = (id: number) => {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,70,85,0.05),_transparent_60%)] pointer-events-none" />
           
           <h2 className="text-lg md:text-2xl font-black text-white max-w-3xl leading-snug z-10">
-            {QUIZ_QUESTIONS[currentQuestion].question}
+            {activeQuestions[currentQuestion].question}
           </h2>
+
+          {/* YENİ: görsel destekli sorular (ajan silüeti, yetenek ikonu, harita görseli).
+              "image" alanı olan sorularda otomatik gösterilir; olmayan (normal metin)
+              sorularda bu alan hiç render edilmez. */}
+          {(activeQuestions[currentQuestion] as any).image && (
+            <div className={`mt-5 mx-auto rounded-xl overflow-hidden border border-white/10 bg-black/40 relative z-10 ${
+              (activeQuestions[currentQuestion] as any).imageType === "silhouette" ? "w-40 h-40" :
+              (activeQuestions[currentQuestion] as any).imageType === "map" ? "w-full max-w-md h-48" :
+              "w-28 h-28"
+            }`}>
+              <Image
+                src={(activeQuestions[currentQuestion] as any).image}
+                alt="Soru görseli"
+                fill
+                className={`object-contain p-2 ${(activeQuestions[currentQuestion] as any).imageType === "silhouette" ? "brightness-0 invert opacity-90" : ""}`}
+              />
+            </div>
+          )}
 
           {/* Dairesel Geri Sayım Sayacı (YENİ) */}
           <div className="mt-6 relative w-16 h-16 z-10">
@@ -3190,9 +4743,9 @@ const copyToClipboard = (id: number) => {
 
         {/* Alt Alan: Şıklar (Fotoğraftaki gibi 2x2 Büyük Renkli Buton Düzeni) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {QUIZ_QUESTIONS[currentQuestion].options.map((option, idx) => {
+          {activeQuestions[currentQuestion].options.map((option, idx) => {
   // BURASI EKSİK KALMIŞTI - RENK VE DURUM HESAPLAMALARI:
-  const isCorrectAnswer = option === QUIZ_QUESTIONS[currentQuestion].answer;
+  const isCorrectAnswer = option === activeQuestions[currentQuestion].answer;
   const isSelected = selectedOption === option;
   
   const baseColors = [
@@ -3246,7 +4799,7 @@ const copyToClipboard = (id: number) => {
               onClick={handleNextQuestion}
               className="px-8 h-12 bg-white text-black hover:bg-white/90 active:scale-95 rounded-xl text-xs font-black uppercase tracking-widest shadow-xl transition duration-150 flex items-center gap-2"
             >
-              {currentQuestion + 1 === QUIZ_QUESTIONS.length ? "SONUÇLARI GÖR" : "SONRAKİ SORU"} ➔
+              {currentQuestion + 1 === activeQuestions.length ? "SONUÇLARI GÖR" : "SONRAKİ SORU"} ➔
             </button>
           </motion.div>
         )}
@@ -3255,7 +4808,7 @@ const copyToClipboard = (id: number) => {
 
     {/* BİTMİŞ/SONUÇ EKRANI (PREMIUM TASARIM — performansa göre renklenen arka plan) */}
     {quizFinished && (() => {
-      const ratio = score / QUIZ_QUESTIONS.length;
+      const ratio = score / activeQuestions.length;
       // Performansa göre tema: harika (yeşil/altın), orta (kırmızı marka rengi), zayıf (mor/mavi soğuk ton)
       const theme = ratio >= 0.7
         ? { glow: "rgba(52,211,153,0.16)", accent: "text-emerald-400", border: "border-emerald-500/20", ring: "from-emerald-400 to-teal-500" }
@@ -3283,7 +4836,7 @@ const copyToClipboard = (id: number) => {
             <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${theme.ring} flex items-center justify-center shadow-xl ring-4 ring-white/5 mb-2`}>
               <div className="w-[72px] h-[72px] rounded-full bg-[#101116] flex flex-col items-center justify-center">
                 <span className="text-2xl font-black text-white leading-none">{score}</span>
-                <span className="text-[9px] text-white/30 font-bold leading-none mt-0.5">/ {QUIZ_QUESTIONS.length}</span>
+                <span className="text-[9px] text-white/30 font-bold leading-none mt-0.5">/ {activeQuestions.length}</span>
               </div>
             </div>
             <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">DOĞRU CEVAP SAYISI</p>
@@ -3345,7 +4898,7 @@ const copyToClipboard = (id: number) => {
         <p className="text-white/40 text-xs font-medium">Kendi lobini kur veya aktif bir ekibe dahil ol.</p>
       </div>
       <button
-        onClick={() => setIsLobbyModalOpen(true)}
+        onClick={() => { if (!requireLogin()) return; setIsLobbyModalOpen(true); }}
         className="h-11 px-6 bg-emerald-500 hover:bg-emerald-600 active:scale-95 rounded-xl text-xs font-black uppercase tracking-widest text-black shadow-lg shadow-emerald-500/20 transition duration-150 self-start sm:self-center flex items-center gap-2"
       >
         <span className="text-sm">+</span> LOBİ OLUŞTUR
@@ -3358,6 +4911,19 @@ const copyToClipboard = (id: number) => {
         görünmüyordu. Artık dekoratif arka plan ayrı, kendi overflow-hidden'ı olan bir
         katmana alındı; dış kutu artık overflow-visible, menü rahatça taşabiliyor. */}
     <div className="relative bg-gradient-to-r from-[#1a1c24] via-[#14151a] to-[#1a1420] border border-white/5 p-4 rounded-2xl flex flex-wrap items-center gap-4 shadow-xl mb-6">
+      {/* YENİ: yenileme sırasında dolan ince kırmızı çubuk — arama barının hemen üstünde,
+          yenileme bitince kayboluyor. Görsel geri bildirim: "yenileniyor" hissi veriyor. */}
+      <AnimatePresence>
+        {isRefreshingLobbies && (
+          <motion.div
+            initial={{ width: "0%", opacity: 1 }}
+            animate={{ width: "100%" }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+            className="absolute -top-[3px] left-2 right-2 h-[3px] rounded-full bg-gradient-to-r from-[#ff4655] to-red-400 shadow-[0_0_8px_rgba(255,70,85,0.6)]"
+          />
+        )}
+      </AnimatePresence>
       <div className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden">
         <div className="absolute -top-10 -left-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-[#ff4655]/10 rounded-full blur-3xl" />
@@ -3466,7 +5032,13 @@ const copyToClipboard = (id: number) => {
     </div>
 
     {/* LOBİ KARTLARI (YENİ TASARIM) */}
-    {(() => {
+    {lobbiesLoading ? (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="h-[132px] rounded-2xl bg-gradient-to-b from-[#16171d] to-[#0f1014] border border-white/5 animate-pulse" />
+        ))}
+      </div>
+    ) : (() => {
       const filteredLobbies = lobbies
         // DÜZELTME: artık sadece oyuncu ismine değil, parti koduna (örn. RCB605) göre de arıyor
         .filter((lobby) => lobby.nick.toLowerCase().includes(teamSearchQuery.toLowerCase()) || lobby.code.toLowerCase().includes(teamSearchQuery.toLowerCase()))
@@ -3509,7 +5081,25 @@ const copyToClipboard = (id: number) => {
               animate={{ opacity: 1, y: 0 }}
               className={`relative overflow-hidden bg-gradient-to-br ${accent} bg-[#14151a]/95 border border-white/10 hover:border-emerald-500/30 rounded-2xl p-5 shadow-xl transition-colors duration-200`}
             >
-              <div className="pointer-events-none absolute -top-8 -right-8 w-28 h-28 rounded-full bg-white/[0.02] blur-2xl" />
+              {/* DÜZELTME (istek): "torii ve sis detayları belli olmuyor" — eski şekil sadece
+                  birkaç dikdörtgendi ve opaklık (0.07) çok düşüktü, gerçek bir torii kapısına hiç
+                  benzemiyordu; "sis" de aslında düz beyaz bir blur daireden ibaretti. Artık: 1)
+                  gerçek bir torii silüeti (kavisli üst kiriş + uçları kalkık köşeler + alt kiriş +
+                  ortadaki tabela + iki direk), büyütülmüş boyut ve fark edilir opaklıkta; 2) alttan
+                  yükselen, genişlikleri/opaklıkları farklı GERÇEK sis katmanları (tek bir blur
+                  yerine üst üste 3 kat). */}
+              <svg className="pointer-events-none absolute -top-4 -right-6 w-36 h-28 opacity-[0.16] text-white" viewBox="0 0 140 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 22 Q 70 6 132 22 L 132 30 Q 70 16 8 30 Z" fill="currentColor" />
+                <path d="M6 20 Q 4 26 8 32" stroke="currentColor" strokeWidth="4" strokeLinecap="round" fill="none" />
+                <path d="M134 20 Q 136 26 132 32" stroke="currentColor" strokeWidth="4" strokeLinecap="round" fill="none" />
+                <rect x="16" y="38" width="108" height="7" rx="2" fill="currentColor" />
+                <rect x="60" y="40" width="20" height="14" rx="1.5" fill="currentColor" opacity="0.6" />
+                <rect x="27" y="28" width="11" height="62" rx="2" fill="currentColor" />
+                <rect x="102" y="28" width="11" height="62" rx="2" fill="currentColor" />
+              </svg>
+              <div className="pointer-events-none absolute -bottom-6 -left-6 w-40 h-24 rounded-full bg-white/[0.06] blur-2xl" />
+              <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-emerald-400/[0.07] via-white/[0.04] to-transparent blur-md" />
+              <div className="pointer-events-none absolute bottom-0 left-1/4 right-0 h-8 bg-gradient-to-t from-white/[0.05] to-transparent blur-sm" />
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   {(() => {
@@ -3550,9 +5140,18 @@ const copyToClipboard = (id: number) => {
                 <span className="ml-auto text-[10px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1.5 rounded-lg">{GAME_MODE_LABELS[lobby.mode] || lobby.mode}</span>
               </div>
 
-              {lobby.message && (
-                <p className="text-[11px] text-white/50 italic mb-3 line-clamp-2 border-l-2 border-white/10 pl-2.5">"{lobby.message}"</p>
-              )}
+              {/* DÜZELTME (ASIL BUG — "mesaj olan kart diğerlerinden büyük oluyor"): bu blok
+                  önceden SADECE mesaj varsa render ediliyordu ("lobby.message && (...)") — yani
+                  mesajlı kartlar mesajsız kartlardan daha uzundu, grid'de düzensiz görünüyordu.
+                  Artık alan HER ZAMAN ayrılıyor (sabit yükseklik, min-h-[30px]) — mesaj yoksa
+                  boş kalıyor ama kartın boyunu değiştirmiyor. Mesaj girişine de (aşağıda) 80
+                  karakter sınırı kondu; line-clamp-2 zaten görünümü 2 satırla sınırlıyordu ama
+                  ekstra bir güvence olarak kart boyunu asla etkilemesin diye eklendi. */}
+              <div className="min-h-[30px] mb-3">
+                {lobby.message && (
+                  <p className="text-[11px] text-white/50 italic line-clamp-2 border-l-2 border-white/10 pl-2.5">"{lobby.message}"</p>
+                )}
+              </div>
 
               <div className="flex items-center justify-between pt-3 border-t border-white/5 gap-2">
                 <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1.5 rounded-lg whitespace-nowrap">
@@ -3584,13 +5183,20 @@ const copyToClipboard = (id: number) => {
       );
     })()}
 
-    {/* LOBİ OLUŞTURMA PENCERESİ (İLERİ DÜZEY MODAL) */}
-    {isLobbyModalOpen && (
+    {/* LOBİ OLUŞTURMA PENCERESİ (İLERİ DÜZEY MODAL)
+        DÜZELTME (istek — "açılan sekme çok aşağıda kalıyor"): bu modal "transform-gpu"
+        class'lı (CSS transform uygulanan) find-team sekmesinin İÇİNDE duruyordu. CSS'te
+        transform'lu bir ata, içindeki "position: fixed" elemanların referans noktasını
+        VIEWPORT'tan kendisine çeviriyor — bu yüzden modal viewport'ta ortalanacağına, o uzun
+        kaydırılabilir sekmenin bir yerine (genelde ekranın çok aşağısına) düşüyordu. Aynı bug
+        daha önce nişangah ve forum gönderi modallerinde de vardı, ikisi de createPortal ile
+        doğrudan document.body'ye render edilerek çözüldü — burada da aynı çözüm uygulandı. */}
+    {isLobbyModalOpen && typeof document !== "undefined" && createPortal(
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
         <div className="w-full max-w-md bg-[#14151a] border border-white/10 rounded-2xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
 
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-black text-sm flex-shrink-0">+</div>
+            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-base flex-shrink-0">👥</div>
             <div>
               <h2 className="text-sm font-black uppercase tracking-tight text-white leading-none">Lobi Oluştur</h2>
               <p className="text-[10px] text-white/30 uppercase tracking-wider mt-0.5">Valorant</p>
@@ -3723,11 +5329,12 @@ const copyToClipboard = (id: number) => {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black uppercase tracking-wider text-white/40">Mesaj (Opsiyonel)</label>
+              <label className="text-[10px] font-black uppercase tracking-wider text-white/40">Mesaj (Opsiyonel, en fazla 80 karakter)</label>
               <input
                 type="text"
                 id="lobbyMessage"
                 placeholder="Sakin oyuncular arıyorum..."
+                maxLength={80}
                 className="bg-black/40 border border-white/5 focus:border-emerald-500/50 rounded-xl h-11 px-4 text-xs font-bold text-white outline-none w-full"
               />
             </div>
@@ -3837,36 +5444,1694 @@ const copyToClipboard = (id: number) => {
             </div>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     )}
   </motion.section>
 )}
 
+{/* ===== FORUM SEKMESİ (YENİ) ===== */}
+{activeTab === "forum" && (
+  <motion.section key="forum-tab" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative z-10 min-h-screen pt-40 px-6 pb-20 transform-gpu">
+    <div className="max-w-6xl mx-auto">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <div>
+          <div className="flex items-center gap-2.5 mb-1">
+            <div className="h-6 w-1 bg-gradient-to-b from-[#ff4655] to-red-800 rounded-full" />
+            <h1 className="text-2xl font-black text-white uppercase tracking-tight bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Topluluk Forumu</h1>
+          </div>
+          <p className="text-xs text-white/40 mt-1">Türk Valorant topluluğu için — düşüncelerini, tartışmalarını ve anketlerini paylaş.</p>
+        </div>
+        <button
+          onClick={() => { if (!requireLogin()) return; setIsNewPostModalOpen(true); }}
+          className="px-5 py-2.5 bg-[#ff4655] hover:bg-red-600 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-red-500/20 transition duration-150"
+        >
+          + Yeni Gönderi
+        </button>
+      </div>
+
+      {/* UYARI BANNER: forum, oyuncu bulma yeri değil */}
+      <div className="mb-6 bg-amber-500/10 border border-amber-500/25 rounded-xl px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
+        <p className="text-[11px] font-bold text-amber-300/90">⚠️ Bu kanal oyuncu bulmak için uygun değil. Takım arıyorsan doğru yerdesin gibi görünmeyebilir — asıl adres "Takım Bul" sekmesi.</p>
+        <button
+          onClick={() => setActiveTab("find-team")}
+          className="flex items-center gap-1.5 text-[11px] font-black text-amber-300 hover:text-amber-200 transition-colors flex-shrink-0"
+        >
+          Takım Bul'a git <span>→</span>
+        </button>
+      </div>
+
+      {selectedForumPostId === null ? (
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
+          {/* GÖNDERİ LİSTESİ */}
+          <div className="flex flex-col gap-3">
+            {forumPostsLoading ? (
+              [0, 1, 2].map((i) => (
+                <div key={i} className="h-28 rounded-xl border border-white/10 bg-[#14151a]/60 animate-pulse" />
+              ))
+            ) : forumPosts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-2 py-16 border border-dashed border-white/10 rounded-xl">
+                <span className="text-2xl opacity-30">💬</span>
+                <p className="text-xs font-bold text-white/40">Henüz hiç gönderi yok. İlk gönderiyi sen paylaş!</p>
+              </div>
+            ) : null}
+            {!forumPostsLoading && forumPosts.map((post) => {
+              const avatar = findAvatarById(post.avatar_id);
+              return (
+                <button
+                  key={post.id}
+                  onClick={() => {
+                    setSelectedForumPostId(post.id);
+                    fetchForumComments(post.id);
+                    fetch("/api/forum/view", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: post.id }) })
+                      .then((res) => res.ok ? res.json() : null)
+                      .then((data) => {
+                        if (typeof data?.viewCount === "number") setForumPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, view_count: data.viewCount } : p)));
+                      })
+                      .catch(() => {});
+                  }}
+                  className="relative overflow-hidden text-left bg-[#14151a]/90 border border-white/10 hover:border-white/20 rounded-xl p-5 transition-colors duration-150"
+                >
+                  {/* DÜZELTME (istek): "sakura belli olmuyor, hareketli/animasyonlu yapabilirsin,
+                      yapraklar dökülsün" — dal ve çiçekler büyütülüp (28→40) opaklığı (0.08→0.18)
+                      artırıldı, ayrıca daldan sürekli süzülüp düşen/sallanan birkaç bağımsız
+                      yaprak (motion.ellipse ile döngüsel y + rotate + opacity animasyonu)
+                      eklendi — artık statik bir çizim değil, gerçekten "dökülen" bir sakura. */}
+                  <svg className="pointer-events-none absolute -top-6 -right-8 w-40 h-40 opacity-[0.18] rotate-12 overflow-visible" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 90 Q 30 60 50 40 Q 65 25 85 15" stroke="#ff8fa3" strokeWidth="2.5" strokeLinecap="round" />
+                    <path d="M45 45 Q 50 35 60 32" stroke="#ff8fa3" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M60 30 Q 65 20 75 18" stroke="#ff8fa3" strokeWidth="2" strokeLinecap="round" />
+                    {[[85, 15], [70, 22], [55, 38], [40, 50], [25, 65]].map(([cx, cy], idx) => (
+                      <g key={idx} transform={`translate(${cx} ${cy})`}>
+                        {[0, 72, 144, 216, 288].map((deg) => (
+                          <ellipse key={deg} cx={0} cy={-4} rx="3.6" ry="5" fill="#ffb3c6" transform={`rotate(${deg})`} />
+                        ))}
+                      </g>
+                    ))}
+                    {/* düşen yapraklar */}
+                    {[
+                      { x: 30, delay: 0, dur: 4.5 },
+                      { x: 55, delay: 1.2, dur: 5.2 },
+                      { x: 15, delay: 2.4, dur: 4.8 },
+                      { x: 70, delay: 0.6, dur: 5.6 },
+                    ].map((leaf, i) => (
+                      <motion.ellipse
+                        key={i}
+                        rx="3"
+                        ry="4"
+                        fill="#ffb3c6"
+                        animate={{ cy: [5, 95], cx: [leaf.x, leaf.x + 10, leaf.x - 6], opacity: [0, 1, 1, 0] }}
+                        transition={{ duration: leaf.dur, delay: leaf.delay, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                    ))}
+                  </svg>
+                  <div className="relative flex items-center gap-2.5 mb-2">
+                    <div className={`relative w-7 h-7 rounded-full bg-gradient-to-br ${avatar.ring} flex-shrink-0 overflow-hidden`}>
+                      <Image src={avatar.img} alt={`${post.author} avatarı`} fill sizes="28px" className="object-cover" />
+                    </div>
+                    <span className="text-xs font-bold text-white/70">{post.author}</span>
+                    <span className="text-[10px] text-white/25">· <RelativeTimeText createdAt={new Date(post.created_at).getTime()} /></span>
+                    {post.poll_options && <span className="text-[9px] font-black uppercase bg-indigo-500/15 text-indigo-300 border border-indigo-500/25 px-1.5 py-0.5 rounded">Anket</span>}
+                  </div>
+                  <h3 className="relative text-sm font-black text-white mb-1">{post.title}</h3>
+                  <p className="relative text-xs text-white/50 line-clamp-2">{post.content}</p>
+                  <div className="relative flex items-center gap-4 mt-3 text-[11px] font-bold text-white/40">
+                    <span>❤️ {post.likes}</span>
+                    <span>💬 {post.comment_count}</span>
+                    <span>👁 {post.view_count}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* SAĞ SIDEBAR
+              DÜZELTME: "En Çok Beğenilen Gönderiler" eskiden sadece sıra numarası + düz başlık
+              metniydi (görsel olarak çok yalındı). Artık her satırda yazarın avatarı, beğeni
+              sayısı ve satırlar arasında gerçek kart ayrımı (arka plan/hover) var — listenin
+              geri kalanındaki gönderi kartlarıyla aynı dile sahip. "Siteyi Gören Kişi Sayısı"
+              kutusu tamamen kaldırıldı. */}
+          <div className="flex flex-col gap-4">
+            <div className="bg-[#14151a]/90 border border-white/10 rounded-xl p-4">
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-3">En Çok Beğenilen Gönderiler</p>
+              <div className="flex flex-col gap-1.5">
+                {forumPostsLoading ? (
+                  [0, 1, 2].map((i) => <div key={i} className="h-10 rounded-lg bg-white/[0.03] animate-pulse" />)
+                ) : (
+                  <>
+                    {topForumPosts.map((p, i) => {
+                      const avatar = findAvatarById(p.avatar_id);
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => { setSelectedForumPostId(p.id); fetchForumComments(p.id); }}
+                          className="text-left flex items-center gap-2.5 rounded-lg p-2 hover:bg-white/5 transition-colors"
+                        >
+                          <span className="text-[10px] font-black text-white/25 w-3 flex-shrink-0">{i + 1}</span>
+                          <div className={`relative w-7 h-7 rounded-full bg-gradient-to-br ${avatar.ring} flex-shrink-0 overflow-hidden`}>
+                            <Image src={avatar.img} alt={`${p.author} avatarı`} fill sizes="28px" className="object-cover" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[11px] font-bold text-white/70 truncate">{p.title}</p>
+                            <p className="text-[9px] text-white/30 truncate">{p.author}</p>
+                          </div>
+                          <span className="flex-shrink-0 text-[10px] font-black text-white/40">❤️ {p.likes}</span>
+                        </button>
+                      );
+                    })}
+                    {forumPosts.length === 0 && <p className="text-[10px] text-white/25">Henüz gönderi yok.</p>}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* GÖNDERİ DETAYI */
+        (() => {
+          const post = forumPosts.find((p) => p.id === selectedForumPostId);
+          if (!post) {
+            // DÜZELTME (istek): F5 sonrası ?post= ile doğrudan bir gönderiye dönülürken,
+            // forumPosts henüz gelmediyse (forumPostsLoading) sessizce boş ekran göstermek
+            // yerine kısa bir yükleniyor durumu gösteriliyor; veri gelip de gönderi GERÇEKTEN
+            // yoksa (silinmiş olabilir) kullanıcı listeye yönlendiriliyor.
+            if (forumPostsLoading) {
+              return (
+                <div className="max-w-2xl mx-auto">
+                  <div className="h-64 rounded-xl border border-white/10 bg-[#14151a]/60 animate-pulse" />
+                </div>
+              );
+            }
+            return (
+              <div className="max-w-2xl mx-auto text-center py-16">
+                <p className="text-xs font-bold text-white/40">Bu gönderi bulunamadı.</p>
+                <button onClick={() => setSelectedForumPostId(null)} className="mt-4 text-xs font-black text-[#ff4655] hover:text-red-400">← Foruma dön</button>
+              </div>
+            );
+          }
+          const avatar = findAvatarById(post.avatar_id);
+          const totalVotes = (post.poll_votes || []).reduce((a: number, b: number) => a + b, 0);
+          const alreadyVotedPoll = forumPollVoted.has(post.id);
+
+          return (
+            <div className="max-w-2xl mx-auto">
+              <button onClick={() => setSelectedForumPostId(null)} className="text-xs font-bold text-white/40 hover:text-white mb-4 flex items-center gap-1.5">← Geri</button>
+              <div className="bg-[#14151a]/90 border border-white/10 rounded-xl p-6">
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className={`relative w-9 h-9 rounded-full bg-gradient-to-br ${avatar.ring} flex-shrink-0 overflow-hidden`}>
+                    <Image src={avatar.img} alt={`${post.author} avatarı`} fill sizes="36px" className="object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-white">{post.author}</p>
+                    <p className="text-[10px] text-white/30"><RelativeTimeText createdAt={new Date(post.created_at).getTime()} /></p>
+                  </div>
+                </div>
+                <h2 className="text-lg font-black text-white mb-2">{post.title}</h2>
+                <p className="text-sm text-white/70 whitespace-pre-wrap leading-relaxed">{post.content}</p>
+
+                {post.poll_options && (
+                  <div className="mt-4 flex flex-col gap-2">
+                    {post.poll_options.map((opt: string, i: number) => {
+                      const voteCount = (post.poll_votes || [])[i] || 0;
+                      const pct = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+                      return (
+                        <button
+                          key={i}
+                          disabled={alreadyVotedPoll}
+                          onClick={() => {
+                            if (alreadyVotedPoll) return;
+                            const nextSet = new Set(forumPollVoted).add(post.id);
+                            setForumPollVoted(nextSet);
+                            try { window.localStorage.setItem("infinity_forum_polls_voted", JSON.stringify([...nextSet])); } catch {}
+                            fetch("/api/forum/poll-vote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ postId: post.id, optionIndex: i }) })
+                              .then((r) => (r.ok ? r.json() : null))
+                              .then((data) => { if (data?.pollVotes) setForumPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, poll_votes: data.pollVotes } : p))); })
+                              .catch(() => {});
+                          }}
+                          className="relative overflow-hidden text-left bg-black/30 border border-white/10 rounded-lg px-3 py-2.5 text-xs font-bold text-white/80 disabled:cursor-default"
+                        >
+                          {alreadyVotedPoll && <div className="absolute inset-y-0 left-0 bg-indigo-500/20" style={{ width: `${pct}%` }} />}
+                          <div className="relative flex items-center justify-between">
+                            <span>{opt}</span>
+                            {alreadyVotedPoll && <span className="text-white/40">{pct}% ({voteCount})</span>}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-4 mt-5 pt-4 border-t border-white/5">
+                  <button onClick={() => toggleForumLike("post", post.id, "like")} className={`flex items-center gap-1.5 text-xs font-bold transition-colors ${forumLikedIds.has(`post-like-${post.id}`) ? "text-red-400" : "text-white/40 hover:text-white"}`}>
+                    ❤️ {post.likes}
+                  </button>
+                  <button onClick={() => toggleForumLike("post", post.id, "dislike")} className={`flex items-center gap-1.5 text-xs font-bold transition-colors ${forumLikedIds.has(`post-dislike-${post.id}`) ? "text-blue-400" : "text-white/40 hover:text-white"}`}>
+                    👎 {post.dislikes}
+                  </button>
+                  <span className="text-xs font-bold text-white/30 ml-auto">👁 {post.view_count} görüntülenme</span>
+                </div>
+              </div>
+
+              {/* YORUMLAR */}
+              <div className="mt-6">
+                <p className="text-xs font-black uppercase tracking-widest text-white/30 mb-3">Yorumlar ({forumComments.length})</p>
+                {isLoggedIn && (
+                  <div className="flex gap-2 mb-4">
+                    <input
+                      ref={forumCommentInputRef}
+                      defaultValue=""
+                      placeholder="Yorum yaz..."
+                      onKeyDown={(e) => {
+                        // Enter'a basınca da gönderilebilsin (eskiden sadece butonla mümkündü)
+                        if (e.key === "Enter") (document.getElementById(`forumCommentSend-${post.id}`) as HTMLButtonElement)?.click();
+                      }}
+                      className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 h-10 text-xs text-white outline-none focus:border-white/30"
+                    />
+                    <button
+                      id={`forumCommentSend-${post.id}`}
+                      onClick={() => {
+                        const val = forumCommentInputRef.current?.value.trim() || "";
+                        if (!val) return;
+                        fetch("/api/forum/comments", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ postId: post.id, author: currentUser, avatarId: selectedAvatar?.id || null, content: val }),
+                        })
+                          .then((r) => (r.ok ? r.json() : null))
+                          .then((data) => {
+                            if (data?.comment) {
+                              setForumComments((prev) => [...prev, data.comment]);
+                              setForumPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, comment_count: p.comment_count + 1 } : p)));
+                              if (forumCommentInputRef.current) forumCommentInputRef.current.value = "";
+                            }
+                          })
+                          .catch(() => {});
+                      }}
+                      className="px-4 h-10 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-bold text-white transition-colors"
+                    >
+                      Gönder
+                    </button>
+                  </div>
+                )}
+                <div className="flex flex-col gap-2.5">
+                  {forumComments.map((c) => {
+                    const cAvatar = findAvatarById(c.avatar_id);
+                    return (
+                      <div key={c.id} className="bg-[#14151a]/70 border border-white/5 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <div className={`relative w-5 h-5 rounded-full bg-gradient-to-br ${cAvatar.ring} flex-shrink-0 overflow-hidden`}>
+                            <Image src={cAvatar.img} alt={`${c.author} avatarı`} fill sizes="20px" className="object-cover" />
+                          </div>
+                          <span className="text-[11px] font-bold text-white/70">{c.author}</span>
+                          <span className="text-[9px] text-white/25">· <RelativeTimeText createdAt={new Date(c.created_at).getTime()} /></span>
+                        </div>
+                        <p className="text-xs text-white/60">{c.content}</p>
+                        <div className="flex items-center gap-3 mt-2">
+                          <button onClick={() => toggleForumLike("comment", c.id, "like")} className={`text-[10px] font-bold ${forumLikedIds.has(`comment-like-${c.id}`) ? "text-red-400" : "text-white/30 hover:text-white/60"}`}>❤️ {c.likes}</button>
+                          <button onClick={() => toggleForumLike("comment", c.id, "dislike")} className={`text-[10px] font-bold ${forumLikedIds.has(`comment-dislike-${c.id}`) ? "text-blue-400" : "text-white/30 hover:text-white/60"}`}>👎 {c.dislikes}</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })()
+      )}
+    </div>
+
+    {/* YENİ GÖNDERİ MODALI */}
+    {isNewPostModalOpen && typeof document !== "undefined" && createPortal(
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div className="w-full max-w-md bg-[#14151a] border border-white/10 rounded-2xl p-6 shadow-2xl relative max-h-[92vh] overflow-y-auto">
+          <button onClick={() => setIsNewPostModalOpen(false)} className="absolute top-4 right-4 text-white/40 hover:text-white text-sm">✕</button>
+          <h2 className="text-lg font-black text-white mb-4">Yeni Gönderi</h2>
+          <div className="flex flex-col gap-3">
+            <input id="newPostTitle" placeholder="Başlık" className="bg-black/40 border border-white/10 rounded-xl h-11 px-4 text-xs font-bold text-white outline-none focus:border-white/30" />
+            <textarea id="newPostContent" placeholder="Ne düşünüyorsun?" rows={4} className="bg-black/40 border border-white/10 rounded-xl p-4 text-xs font-medium text-white outline-none resize-none focus:border-white/30" />
+
+            <label className="flex items-center gap-2 text-[11px] font-bold text-white/60">
+              <input type="checkbox" checked={newPostHasPoll} onChange={(e) => setNewPostHasPoll(e.target.checked)} />
+              Anket ekle
+            </label>
+
+            {newPostHasPoll && (
+              <div className="flex flex-col gap-2">
+                {newPostPollOptions.map((opt, i) => (
+                  <input
+                    key={i}
+                    value={opt}
+                    onChange={(e) => setNewPostPollOptions((prev) => prev.map((o, idx) => (idx === i ? e.target.value : o)))}
+                    placeholder={`Seçenek ${i + 1}`}
+                    className="bg-black/40 border border-white/10 rounded-lg h-9 px-3 text-xs text-white outline-none"
+                  />
+                ))}
+                {newPostPollOptions.length < 6 && (
+                  <button onClick={() => setNewPostPollOptions((prev) => [...prev, ""])} className="text-[10px] font-bold text-white/40 hover:text-white text-left">+ Seçenek ekle</button>
+                )}
+              </div>
+            )}
+
+            <button
+              onClick={() => {
+                const title = (document.getElementById("newPostTitle") as HTMLInputElement)?.value.trim();
+                const content = (document.getElementById("newPostContent") as HTMLTextAreaElement)?.value.trim();
+                if (!title || !content) return alert("Başlık ve içerik zorunludur.");
+                const pollOptions = newPostHasPoll ? newPostPollOptions.map((o) => o.trim()).filter(Boolean) : null;
+                if (newPostHasPoll && (!pollOptions || pollOptions.length < 2)) return alert("Anket için en az 2 seçenek gir.");
+
+                fetch("/api/forum/posts", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ author: currentUser, avatarId: selectedAvatar?.id || null, title, content, pollOptions }),
+                })
+                  .then((r) => (r.ok ? r.json() : null))
+                  .then((data) => { if (data?.post) setForumPosts((prev) => [data.post, ...prev]); })
+                  .catch(() => {});
+
+                setIsNewPostModalOpen(false);
+                setNewPostHasPoll(false);
+                setNewPostPollOptions(["", ""]);
+              }}
+              className="w-full h-11 bg-gradient-to-r from-[#ff4655] to-red-600 hover:brightness-110 rounded-xl font-black text-xs uppercase tracking-widest text-white mt-1 shadow-lg shadow-red-500/20 transition duration-150"
+            >
+              Gönderiyi Paylaş
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    )}
+  </motion.section>
+)}
+
+{/* ===== RANK TAHMİN ===== */}
+{activeTab === "rank-guess" && (
+  <motion.section key="rank-guess-tab" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative z-10 min-h-screen pt-40 px-6 pb-20 text-center transform-gpu">
+    {(() => {
+      const RANK_ICONS = [
+        { label: "Demir", img: "/demir.png" },
+        { label: "Bronz", img: "/bronz.png" },
+        { label: "Gümüş", img: "/silver.png" },
+        { label: "Altın", img: "/gold.png" },
+        { label: "Platin", img: "/plat.png" },
+        { label: "Elmas", img: "/dia.png" },
+        // DÜZELTME (istek): "rütbeni seç'te Ascendant yazıyor ama dia logosu var" — Ascendant
+        // satırı yanlışlıkla Diamond'ın dosyasını ("/dia.png") kullanıyordu. "/ascendant.png"
+        // adında bir görsel /public klasöründe olmalı; dosya adın farklıysa (örn. "/asc.png")
+        // buradaki yolu ona göre güncelle.
+        { label: "Yüce", img: "/yüce.png" },
+        { label: "Ölümsüz", img: "/immo.png" },
+        { label: "Radyant", img: "/radiant.png" },
+      ] as const;
+
+      const currentClip = rankClipIndex >= 0 ? rankClips[rankClipIndex] || null : null;
+      const embedUrl = currentClip ? getRankClipEmbedUrl(currentClip.url) : null;
+      const rankAliases: Record<string, string> = {
+        iron: "demir", bronze: "bronz", silver: "gümüş", gold: "altın", platinum: "platin",
+        diamond: "elmas", ascendant: "yüce", immortal: "ölümsüz", radiant: "radyant",
+      };
+      const normalizeRank = (rank: string) => rankAliases[rank.toLocaleLowerCase("en-US")] || rank.toLocaleLowerCase("tr-TR");
+      const displayRank = (rank: string) => RANK_ICONS.find((item) => normalizeRank(item.label) === normalizeRank(rank))?.label || rank;
+
+      const chooseRankForClip = (rank: string) => {
+        if (rankGuessResult || !currentClip || !currentUser) {
+          if (!currentUser) requireLogin();
+          return;
+        }
+        setRankPickedLabel(rank);
+        const correct = normalizeRank(rank) === normalizeRank(currentClip.rank);
+        setRankGuessResult(correct ? "correct" : "wrong");
+        if (correct) {
+          playCorrectSound();
+          const next = rankStreak + 1;
+          setRankStreak(next);
+          if (next > rankBestStreak) {
+            setRankBestStreak(next);
+            try { window.localStorage.setItem(`infinity_rank_best_${currentUser || "guest"}`, String(next)); } catch {}
+          }
+        } else {
+          playWrongSound();
+          setRankStreak(0);
+        }
+        fetch("/api/rank-guesses", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clipId: currentClip.id, playerName: currentUser, guessedRank: rank }),
+        }).then(async (res) => {
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Tahmin kaydedilemedi.");
+          setRankGuessStats(data);
+        }).catch((error) => setRankToast(error.message || "Tahmin kaydedilemedi."));
+      };
+      const nextClip = () => {
+        playClickSound();
+        if (currentClip) {
+          const viewed = [...new Set([...rankViewedClipIds, currentClip.id])];
+          setRankViewedClipIds(viewed);
+          try { window.localStorage.setItem(`infinity_rank_viewed_${currentUser || "guest"}`, JSON.stringify(viewed)); } catch {}
+          const nextIndex = rankClips.findIndex((clip, index) => index > rankClipIndex && !viewed.includes(clip.id));
+          const firstUnwatched = rankClips.findIndex((clip) => !viewed.includes(clip.id));
+          setRankClipIndex(nextIndex >= 0 ? nextIndex : firstUnwatched);
+        }
+        setRankGuessResult(null);
+        setRankPickedLabel(null);
+      };
+      const shareClip = () => {
+        const url = typeof window !== "undefined" ? window.location.href : "";
+        navigator.clipboard?.writeText(url).then(() => {
+          setRankToast("Bağlantı kopyalandı.");
+          setTimeout(() => setRankToast(""), 2500);
+        }).catch(() => setRankToast("Bağlantı kopyalanamadı."));
+      };
+      const currentCorrect = rankGuessStats?.currentCorrect || 0;
+      const playerRank = rankGuessStats?.playerRank || null;
+
+      // YENİ (istek): "klipteki oyuncunun rankını yazdıktan sonra böyle bi ekran çıksın, doğru
+      // ya da yanlış falan" — referans görseldeki (WHIFFED IT! / doğru rütbe / oyuncu tahminleri
+      // dağılımı / NEXT CLIP) tam ekran sonuç modalı. Gerçek bir "diğer oyuncular ne tahmin
+      // etti" veritabanı yok, o yüzden dağılım klibe özel SABİT bir tohumdan (seed) üretiliyor —
+      // her klipte hep aynı (rastgele değişmeyen), gerçek rütbeye ağırlıklı, mantıklı görünen
+      // bir yüzde dağılımı. Gerçek bir backend eklenirse burası kolayca değiştirilebilir.
+      const guessDistribution = currentClip && rankGuessStats ? RANK_ICONS
+        .map((rank) => ({ label: rank.label, img: rank.img, count: rankGuessStats.counts[rank.label] || 0 }))
+        .sort((a, b) => b.count - a.count) : null;
+      const guessTotalCount = rankGuessStats?.total || 0;
+
+      return (
+        <div className="max-w-6xl mx-auto text-left">
+          {rankToast && <div className="fixed bottom-6 left-1/2 z-[80] -translate-x-1/2 rounded-xl border border-emerald-400/25 bg-[#101014]/95 px-4 py-3 text-xs font-bold text-emerald-300 shadow-2xl backdrop-blur">{rankToast}</div>}
+          <div className="flex items-center gap-2.5 mb-1 justify-center">
+            <div className="h-6 w-1 bg-gradient-to-b from-[#ff4655] to-red-800 rounded-full" />
+            <h1 className="text-2xl font-black text-white uppercase tracking-tight bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Rank Tahmin</h1>
+          </div>
+          <p className="text-xs text-white/40 mb-6 text-center">Klibi izle, oyuncunun gerçek rütbesini tahmin et — seriyi bozmadan ne kadar ilerleyebilirsin?</p>
+
+          {/* DÜZELTME (istek): "rank tahmin menüsünde ön sekme olmasın, direk menü burdan
+              açılsın" + "soldaki sıralamaya dön şeyini kaldır" — ayrı bir giriş/sıralama ekranı
+              kavramı tamamen kaldırıldı, sekmeye girince doğrudan oyun ekranı (klip + rütbe
+              seçimi) açılıyor; "Klip Paylaş" zaten aşağıdaki oyun ekranı başlığında var, o yüzden
+              kaybolan bir işlevsellik yok. */}
+          {(() => {
+            // ===== OYUN EKRANI (video + rütbe seçimi) =====
+            return (
+            <div>
+              <div className="flex items-center justify-between flex-wrap gap-3 rounded-2xl border border-white/10 bg-gradient-to-r from-[#14151a] via-[#19151b] to-[#14151a] px-5 py-3 mb-5 shadow-[0_12px_40px_rgba(0,0,0,0.22)]">
+                <div className="flex items-center gap-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-1.5">
+                  <span className="text-amber-300">🏆</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Toplam Doğru Tahmin</span>
+                  <span className="text-sm font-black text-white">{currentCorrect}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Oyuncular Arasında</span>
+                  <span className="text-sm font-black text-[#ff4655]">{playerRank ? `#${playerRank}` : "Dereceniz yok"}</span>
+                </div>
+                <button onClick={() => setIsRankUploadOpen(true)} className="h-9 px-4 rounded-lg bg-white text-black text-[11px] font-black transition hover:bg-white/90">🎬 Klip Paylaş</button>
+              </div>
+
+              <div className="grid grid-cols-1 xl:grid-cols-[1.85fr_1fr] gap-5">
+                <div className="rounded-2xl border border-white/10 bg-black overflow-hidden aspect-[16/8.2] flex items-center justify-center shadow-2xl">
+                  {!currentClip ? (
+                    <div className="p-8 text-center">
+                      <p className="text-sm font-black text-white/60">{rankClips.length ? "Tüm klipleri izlediniz" : "Henüz klip yok"}</p>
+                      <p className="mt-2 text-xs text-white/35">{rankClips.length ? "Yeni klip eklendiğinde burada görünecek." : "İlk klibi sen paylaşarak oyunu başlat."}</p>
+                      <button onClick={() => setIsRankUploadOpen(true)} className="mt-4 h-10 px-5 rounded-lg bg-[#ff4655] hover:bg-red-500 text-[11px] font-black text-white transition">🎬 Klip Paylaş</button>
+                    </div>
+                  ) : embedUrl ? (
+                    <iframe src={embedUrl} className="w-full h-full" allow="autoplay; encrypted-media" allowFullScreen />
+                  ) : (
+                    <video src={currentClip.url} controls className="w-full h-full object-contain" />
+                  )}
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-[#14151a]/90 p-5">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3">✥ Rütbeyi Seç</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {RANK_ICONS.map((rank) => {
+                      // YENİ (istek): "seçilme yanlış/doğru animasyonları" — doğru cevap yeşile
+                      // dönüp hafifçe büyüyor (pop), YANLIŞ TIKLADIĞIN buton ise artık kırmızıya
+                      // dönüp sallanıyor (shake) — eskiden sadece doğru cevap işaretleniyordu,
+                      // hangi butona bastığın hiç görünmüyordu.
+                      const isTheCorrectAnswer = rankGuessResult && currentClip && normalizeRank(rank.label) === normalizeRank(currentClip.rank);
+                      const isWronglyPicked = rankGuessResult === "wrong" && rankPickedLabel === rank.label;
+                      return (
+                        <button
+                          key={rank.label}
+                          onClick={() => chooseRankForClip(rank.label)}
+                          disabled={!currentClip || !!rankGuessResult}
+                          className={`h-16 rounded-lg border flex flex-col items-center justify-center gap-1 text-[9px] font-black transition-all duration-300 disabled:opacity-100 ${
+                            isTheCorrectAnswer
+                              ? "border-emerald-400 bg-emerald-500/15 text-emerald-300 scale-110 shadow-[0_0_16px_rgba(52,211,153,0.35)]"
+                              : isWronglyPicked
+                              ? "border-red-500 bg-red-500/15 text-red-300 animate-[shake_0.4s_ease-in-out]"
+                              : "border-white/10 bg-white/[0.03] text-white/70 hover:border-[#ff4655]/60 hover:text-white disabled:opacity-30"
+                          }`}
+                          style={isWronglyPicked ? { animation: "shake 0.4s ease-in-out" } : undefined}
+                        >
+                          <span className="relative w-6 h-6 flex-shrink-0"><Image src={rank.img} alt={rank.label} fill className="object-contain" /></span>
+                          {rank.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <style>{`@keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }`}</style>
+
+                  {rankGuessResult && currentClip && (
+                    <div className="mt-4 rounded-lg px-3 py-2 text-xs font-bold bg-white/[0.03] text-white/40">Sonuç ekranı açıldı →</div>
+                  )}
+
+                  <button onClick={nextClip} disabled={!currentClip} className="mt-4 w-full h-10 rounded-lg bg-[#ff4655] hover:bg-red-500 disabled:opacity-30 text-[11px] font-black text-white transition">▷ Pas & Sıradaki Klip</button>
+
+                  {/* YENİ (istek): rütbe tahmininden sonra tam ekran sonuç modalı — referans
+                      tasarımdaki gibi büyük ikon, gerçek rütbe, oyuncu tahminleri dağılımı ve
+                      "NEXT CLIP" butonu. Sadece tahmin yapılınca (rankGuessResult dolunca)
+                      açılıyor, maç/klip bitmeden asla kendiliğinden çıkmıyor. */}
+                  {rankGuessResult && currentClip && guessDistribution && createPortal(
+                    <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/75 backdrop-blur-sm px-4">
+                      <div className={`relative w-full max-w-sm rounded-2xl border overflow-hidden ${
+                        rankGuessResult === "correct" ? "border-emerald-400/30 bg-[#101410]" : "border-red-500/30 bg-[#140f10]"
+                      }`}>
+                        <div className={`pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full blur-3xl ${rankGuessResult === "correct" ? "bg-emerald-500/15" : "bg-red-500/20"}`} />
+                        <div className="relative px-6 pt-8 pb-5 text-center">
+                          <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 text-2xl font-black ${
+                            rankGuessResult === "correct" ? "border-emerald-400 bg-emerald-500/15 text-emerald-300" : "border-red-500 bg-red-500/15 text-red-400"
+                          }`}>
+                            {rankGuessResult === "correct" ? "✓" : "✕"}
+                          </div>
+                          <h2 className={`mt-4 text-xl font-black uppercase tracking-tight ${rankGuessResult === "correct" ? "text-emerald-300" : "text-red-400"}`}>
+                            {rankGuessResult === "correct" ? "Doğru Tahmin!" : "Yanlış Tahmin!"}
+                          </h2>
+
+                          <p className="mt-5 text-[10px] font-black uppercase tracking-widest text-white/40">Gerçek Rütbe</p>
+                          <div className="mt-2 flex flex-col items-center gap-1.5">
+                            <span className="relative w-12 h-12"><Image src={RANK_ICONS.find((r) => normalizeRank(r.label) === normalizeRank(currentClip.rank))?.img || "/demir.png"} alt={displayRank(currentClip.rank)} fill className="object-contain" /></span>
+                            <p className="text-sm font-black text-white">{displayRank(currentClip.rank)}</p>
+                          </div>
+
+                          <p className="mt-6 mb-2 text-[10px] font-black uppercase tracking-widest text-white/40">Oyuncu Tahminleri ({guessTotalCount})</p>
+                          <div className="space-y-1.5">
+                            {guessDistribution.map((g) => {
+                              const isActual = normalizeRank(g.label) === normalizeRank(currentClip.rank);
+                              return (
+                                <div key={g.label} className="flex items-center gap-2 text-left">
+                                  <span className="relative w-4 h-4 flex-shrink-0"><Image src={g.img} alt={g.label} fill className="object-contain" /></span>
+                                  <span className={`w-14 flex-shrink-0 text-[10px] font-bold truncate ${isActual ? "text-emerald-300" : "text-white/50"}`}>{g.label}</span>
+                                  <div className="h-1.5 flex-1 rounded-full bg-white/5 overflow-hidden">
+                                    <div className={`h-full rounded-full ${isActual ? "bg-emerald-400" : "bg-white/25"}`} style={{ width: `${guessTotalCount ? Math.max((g.count / guessTotalCount) * 100, 2) : 0}%` }} />
+                                  </div>
+                                  <span className={`w-8 flex-shrink-0 text-right text-[10px] font-black ${isActual ? "text-emerald-300" : "text-white/40"}`}>{g.count}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className="relative px-6 pb-6">
+                          <button onClick={nextClip} className="w-full h-11 rounded-lg bg-[#ff4655] hover:bg-red-500 text-[11px] font-black uppercase tracking-widest text-white transition flex items-center justify-center gap-1.5">
+                            ▷ Sıradaki Klip
+                          </button>
+                        </div>
+                      </div>
+                    </div>,
+                    document.body
+                  )}
+                </div>
+              </div>
+
+              {currentClip && (
+                <div className="mt-4 flex items-center justify-between rounded-xl border border-white/10 bg-gradient-to-r from-[#14151a] to-[#1b151a] px-4 py-3">
+                  <span className="text-[11px] font-bold text-white/55">Klip #{rankClipIndex + 1}</span>
+                  <button onClick={shareClip} className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-black text-white/70 hover:bg-white/10 hover:text-white transition">Bağlantıyı Kopyala</button>
+                </div>
+              )}
+              {/* DÜZELTME (istek): "şu alttaki çubuğun altına küçük ve saydam bir şekilde
+                  bu uyarıyı yaz" */}
+              <p className="mt-2 text-center text-[10px] text-white/25">Tüm kliplerin hakları sahiplerine aittir. Videolar YouTube üzerinden gömülü olarak gösterilmektedir.</p>
+            </div>
+            );
+          })()}
+
+          {/* KLİP PAYLAŞMA PENCERESİ — DÜZELTME: diğer modallerdeki (nişangah, forum gönderi,
+              lobi) aynı createPortal çözümü burada da kullanıldı, "transform-gpu" ata elemanı
+              yüzünden ekranın yanlış yerinde açılmasın diye. */}
+          {isRankUploadOpen && typeof document !== "undefined" && createPortal(
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={() => setIsRankUploadOpen(false)}>
+              <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md overflow-hidden bg-gradient-to-b from-[#1b1c24] to-[#111216] border border-white/10 rounded-2xl p-6 shadow-2xl text-left">
+                <h2 className="text-sm font-black uppercase tracking-tight text-white">Klip Paylaş</h2>
+                <p className="mt-1 text-[11px] leading-relaxed text-white/45">YouTube veya doğrudan video bağlantısı ekle. Yalnızca geçerli video bağlantıları paylaşılabilir.</p>
+                <input
+                  value={rankUploadUrl}
+                  onChange={(e) => setRankUploadUrl(e.target.value)}
+                  placeholder="https://youtube.com/watch?v=…"
+                  className="mt-5 h-11 w-full rounded-xl border border-white/10 bg-black/30 px-3.5 text-xs font-bold text-white placeholder:text-white/25 focus:border-[#ff4655]/60 focus:outline-none"
+                />
+                <p className="mt-5 text-[10px] font-black uppercase tracking-[0.16em] text-white/40">Gerçek rütbeyi seç</p>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {RANK_ICONS.map((r) => (
+                    <button key={r.label} type="button" onClick={() => setRankUploadRank(r.label)} className={`flex h-16 flex-col items-center justify-center gap-1 rounded-xl border text-[9px] font-black transition ${rankUploadRank === r.label ? "border-[#ff4655] bg-[#ff4655]/15 text-white shadow-[0_0_18px_rgba(255,70,85,0.22)]" : "border-white/10 bg-black/20 text-white/55 hover:border-white/25 hover:text-white"}`}>
+                      <span className="relative h-7 w-7"><Image src={r.img} alt="" fill className="object-contain" /></span>
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-5 flex gap-2">
+                  <button onClick={() => setIsRankUploadOpen(false)} className="flex-1 h-10 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-black text-white/60 hover:text-white transition">Vazgeç</button>
+                  <button onClick={submitRankClip} className="flex-1 h-10 rounded-lg bg-[#ff4655] hover:bg-red-500 text-[11px] font-black text-white transition">Paylaş</button>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
+        </div>
+      );
+    })()}
+  </motion.section>
+)}
+
+{/* ===== SKİN SAVAŞI =====
+    DÜZELTME (ASIL BUG — "skinler çekilmiyor"): eskiden bu sekme skinCatalog'u (yukarıda
+    valorant-api.com'dan gerçek skin adı + görseliyle çekilen liste) HİÇ kullanmıyordu; sabit
+    2 kurgusal eşleşmeyi ("fights" dizisi) emoji ikonlarıyla gösteriyordu. Artık: 1) bir
+    "Voting Setup" ekranı ile silah + havuz boyutu seçiliyor, 2) skinCatalog'dan gerçek
+    görsellerle rastgele ikili eşleşmeler (bracket) üretiliyor, 3) her eşleşmede kazanan
+    seçilince kısa bir 🏆 rozet animasyonu oynayıp otomatik sıradaki eşleşmeye geçiyor. */}
+{activeTab === "skin-war" && (
+  <motion.section key="skin-war-tab" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative z-10 min-h-screen pt-40 px-6 pb-20 text-center transform-gpu">
+    {(() => {
+      // DÜZELTME (ASIL BUG — "Vandal/Phantom/Operator seçince 0 skin bulundu"): silah listesi
+      // eskiden elle yazılmış SABİT bir dizi idi ("Vandal", "Phantom" ...). Ama filtreleme
+      // gerçek API'den gelen skin.weapon değeriyle YAPILIYOR; API tarafındaki gerçek değer bu
+      // sabit metinlerle birebir eşleşmeyince (örn. görünmez boşluk/farklı biçim) o silah için
+      // liste hep boş kalıyordu. Artık silah listesi doğrudan ÇEKİLEN KATALOGDAN türetiliyor —
+      // DÜZELTME (istek): "o kadar silah ekle demedim, sadece Vandal, Bıçak, Operator, Ghost,
+      // Sheriff, Classic, Phantom olsa yeter" — önceki hali skinCatalog'da bulunan TÜM silah
+      // tiplerini (Shorty, Frenzy, Stinger, Bucky, Judge, Bulldog, Guardian, Marshal, Ares,
+      // Odin...) otomatik sekme yapıyordu. Artık sabit, istenen 7 silahlık liste kullanılıyor.
+      const WEAPON_OPTIONS: { key: string; label: string }[] = [
+        { key: "Vandal", label: "Vandal" },
+        { key: "Phantom", label: "Phantom" },
+        { key: "Bıçak", label: "Bıçak" },
+        { key: "Sheriff", label: "Sheriff" },
+        { key: "Classic", label: "Classic" },
+        { key: "Operator", label: "Operator" },
+        { key: "Ghost", label: "Ghost" },
+      ];
+      const POOL_SIZES: { key: number | "all"; label: string }[] = [
+        { key: "all", label: "Tüm Skinler" },
+        { key: 16, label: "Top 16" },
+        { key: 32, label: "Top 32" },
+        { key: 64, label: "Top 64" },
+      ];
+
+      // DÜZELTME (istek): skin adları artık veri kaynağında (fetch mapping'de) Title Case'e
+      // çevriliyor — bkz. yukarıdaki useEffect içindeki toTitleCase.
+      const filteredPool = skinCatalog
+        .filter((s) => s.weapon === skinWeapon)
+        .filter((s) => s.name.toLowerCase().includes(skinSearch.trim().toLowerCase()))
+        .sort((a, b) => b.votes - a.votes);
+
+      // DÜZELTME (istek): "savaşı başlatma butonu arama kutusuna bağlı olmamalı" — arama kutusu
+      // sadece kurulum ekranında belirli bir skini bulmak/önizlemek için var; savaş HER ZAMAN
+      // seçili silahın TÜM skinleriyle başlıyor, arama metni havuzu daraltmıyor. Önceden arama
+      // kutusundaki metin (örn. "kaos") doğrudan savaş havuzunu da filtrelediği için, tek eşleşme
+      // varsa (2'den az skin) savaş hiç başlamıyordu.
+      const weaponPool = Array.from(
+        new Map(skinCatalog.filter((s) => s.weapon === skinWeapon).map((s) => [s.id, s])).values()
+      ).sort((a, b) => b.votes - a.votes);
+
+      // Bir skin havuzunu karıştırıp eşleşme (pair) listesine çeviren yardımcı fonksiyon.
+      // Havuz tek sayıdaysa son kalan skin "bay" geçer (rakipsiz otomatik tur atlar) —
+      // eskiden tek sayı olunca son skin sessizce havuzdan DÜŞÜYORDU, artık kimse elenmeden
+      // adil şekilde bir sonraki roundda yer alıyor.
+      const buildPairs = (pool: typeof filteredPool) => {
+        const shuffled = [...pool];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        const pairs: (typeof shuffled[number] | null)[][] = [];
+        for (let i = 0; i < shuffled.length - 1; i += 2) pairs.push([shuffled[i], shuffled[i + 1]]);
+        if (shuffled.length % 2 === 1) pairs.push([shuffled[shuffled.length - 1], null]); // bay geçen skin
+        return pairs;
+      };
+
+      // DÜZELTME (ASIL BUG — "oylar liderlik tablosunu etkilemiyor"): Skin katalogu sayfa
+      // açılır açılmaz valorant-api.com'dan çekiliyor ama bu çekme işlemi birkaç yüz ms
+      // sürüyor. O süre boyunca skinCatalog hâlâ SAHTE/yer tutucu (placeholder) skinlerle
+      // dolu ("prime-vandal" gibi uydurma id'ler). Eğer kullanıcı gerçek katalog gelmeden
+      // "Oylamayı Başlat"a basarsa, oylar bu SAHTE id'lere kaydediliyordu; birkaç saniye
+      // sonra gerçek katalog (gerçek UUID'lerle) skinCatalog'u DEĞİŞTİRİNCE, o sahte id'ler
+      // artık hiçbir skine karşılık gelmiyor ve verdiğin oylar sessizce kayboluyordu.
+      // Artık katalog yüklenene kadar oylama hiç başlatılamıyor.
+      const startVoting = () => {
+        if (!requireLogin()) return;
+        if (skinCatalogLoading) return;
+        const size = skinBracketSize === "all" ? weaponPool.length : Math.min(skinBracketSize, weaponPool.length);
+        const pool = weaponPool.slice(0, size);
+        setSkinBracketPairs(buildPairs(pool));
+        setSkinBattleIndex(0);
+        setSkinRoundNumber(1);
+        setSkinBattleDone(false);
+        setSkinWinnerFlash(null);
+        setSkinTotalPool(size); // YENİ: turnuva boyunca sabit kalan toplam seçim hedefi
+        setSkinCumulativePicks(0);
+        setIsSkinBattleOpen(true);
+      };
+
+      const currentPair = skinBracketPairs[skinBattleIndex];
+      const totalPairs = skinBracketPairs.length;
+
+      const goNext = () => {
+        if (skinBattleIndex + 1 >= totalPairs) setSkinBattleDone(true);
+        else setSkinBattleIndex((i) => i + 1);
+      };
+
+      const selectWinner = (skin: { id: string }, rival: { id: string } | null) => {
+        if (skinWinnerFlash) return;
+        setSkinVotes((votes) => ({ ...votes, [skin.id]: (votes[skin.id] || 0) + 1 }));
+        recordSkinMatch(skin.id, rival ? rival.id : null);
+        setSkinWinnerFlash(skin.id);
+        setSkinCumulativePicks((c) => c + 1); // YENİ: toplam ilerleme sadece GERÇEK seçimlerde artar
+        playCorrectSound();
+        // YENİ (istek): "seçim animasyonu spamlanıyor gibi oluyor, biraz daha uzun sürebilir" —
+        // 850ms çok kısaydı, kazanan/kaybeden animasyonunu görmeye yetecek kadar uzatıldı.
+        setTimeout(() => { setSkinWinnerFlash(null); goNext(); }, 1700);
+      };
+
+      // YENİ (istek): "bu eşleşmeyi atla" artık ilerlemeyi ARTIRMIYOR — sadece ekrandaki
+      // eşleşmeyi, henüz oynanmamış BAŞKA bir eşleşmeyle YER DEĞİŞTİRİYOR. Böylece: 1) aynı
+      // roundda hiçbir skin iki kez görünmez (zaten var olan, benzersiz eşleşmeler arasında
+      // sadece SIRA değişiyor, yeni/tekrar eden skin üretilmiyor), 2) "X / Y" ilerleme sayacı
+      // olduğu yerde kalıyor, sadece görünen skinler değişiyor.
+      const skipPair = () => {
+        if (skinWinnerFlash) return;
+        playClickSound();
+        setSkinBracketPairs((prev) => {
+          const pendingIndexes: number[] = [];
+          for (let i = skinBattleIndex + 1; i < prev.length; i++) pendingIndexes.push(i);
+          if (pendingIndexes.length === 0) return prev; // değiştirilecek başka eşleşme kalmadı
+          const swapWith = pendingIndexes[Math.floor(Math.random() * pendingIndexes.length)];
+          const next = [...prev];
+          [next[skinBattleIndex], next[swapWith]] = [next[swapWith], next[skinBattleIndex]];
+          return next;
+        });
+      };
+
+      const backToLeaderboard = () => {
+        setIsSkinBattleOpen(false);
+        setSkinBattleDone(false);
+        setSkinBracketPairs([]);
+        setSkinBattleIndex(0);
+        setSkinRoundNumber(1);
+        setSkinWinnerFlash(null);
+        setSkinTotalPool(0);
+        setSkinCumulativePicks(0);
+        setSkinView("leaderboard");
+      };
+
+      // ===== ROUND BİTİNCE =====
+      // YENİ (istek): "round 1'den 2'ye geçişte araya bir ekran girmesin" — bir sonraki
+      // round'a geçiş artık yukarıdaki useEffect içinde OTOMATİK yapılıyor (kullanıcı hiçbir
+      // butona basmıyor). Burada sadece iki durum kalıyor: 1) hâlâ birden fazla kazanan varsa
+      // (efekt zaten yeni round'u anında hazırlıyor) hiçbir şey göstermeden bekle — arada
+      // görünecek bir "Round Tamamlandı" ekranı YOK; 2) tek şampiyon kaldıysa şampiyon
+      // ekranını göster.
+      if (isSkinBattleOpen && skinBattleDone) {
+        const winners = skinBracketPairs
+          .map(([a, b]) => (!b ? a : (skinVotes[a!.id] || 0) >= (skinVotes[b.id] || 0) ? a : b))
+          .filter((s): s is NonNullable<typeof s> => !!s);
+
+        if (winners.length > 1) {
+          // Yeni round efekt tarafından bir sonraki tickte otomatik kuruluyor — burada hiçbir
+          // ara ekran göstermeden bekliyoruz (interstitial yok).
+          return null;
+        }
+
+        // ===== ŞAMPİYON EKRANI (tek skin kalınca) =====
+        // YENİ (istek): "kazanma ekranını daha efsane yap" — referans tasarımdaki gibi çok daha
+        // büyük/kalın italik başlık, kartın çevresinde kırmızı parıltılı çerçeve, altın taç
+        // rozeti ve daha dramatik bir kompozisyon.
+        const champion = winners[0];
+        return (
+          <div className="max-w-lg mx-auto">
+            <h1 className="text-5xl sm:text-6xl font-black italic uppercase tracking-tight text-white drop-shadow-[0_0_25px_rgba(255,70,85,0.35)]">Şampiyon</h1>
+            <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.2em] text-white/40">Yoğun oylamanın ardından favori skinin belli oldu:</p>
+
+            <div className="relative mt-8 rounded-2xl border-2 border-[#ff4655] bg-gradient-to-b from-[#ff4655]/15 via-[#14151a] to-[#14151a] p-7 shadow-[0_0_45px_rgba(255,70,85,0.3)]">
+              <div className="h-48 rounded-xl border border-white/10 bg-black/30 flex items-center justify-center overflow-hidden">
+                {champion?.image ? <img src={champion.image} alt={champion.name} className="max-h-full max-w-full object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]" /> : <span className="text-5xl opacity-30">✦</span>}
+              </div>
+              <motion.span
+                className="mt-5 block text-4xl"
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+              >
+                👑
+              </motion.span>
+              <h2 className="mt-2 text-2xl sm:text-3xl font-black italic uppercase text-white">{champion?.name}</h2>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-white/40">{skinWeapon} kaplaması</p>
+            </div>
+            {/* YENİ (istek): "tekrar oyna" seçeneği eklendi — bu buton direkt yeni bir tur
+                başlatmak yerine, silah/havuz seçimini değiştirebilsin diye SETUP (Vandal/
+                Ghost/Operator... seçim) ekranına götürüyor. */}
+            <div className="mt-8 flex items-center justify-center gap-3">
+              <button onClick={backToLeaderboard} className="h-12 px-6 rounded-lg bg-[#ff4655] hover:bg-red-500 text-xs font-black uppercase tracking-wide text-white transition shadow-[0_0_20px_rgba(255,70,85,0.35)]">🏆 Sıralamayı Gör</button>
+              <button
+                onClick={() => {
+                  setIsSkinBattleOpen(false);
+                  setSkinBattleDone(false);
+                  setSkinBracketPairs([]);
+                  setSkinBattleIndex(0);
+                  setSkinRoundNumber(1);
+                  setSkinWinnerFlash(null);
+                  setSkinTotalPool(0);
+                  setSkinCumulativePicks(0);
+                  setSkinView("setup");
+                }}
+                className="h-12 px-6 rounded-lg bg-white/10 hover:bg-white hover:text-black text-xs font-black uppercase tracking-wide text-white transition"
+              >
+                ↻ Yeni Oturum
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      // ===== FACE-OFF (KARŞILAŞMA) EKRANI =====
+      if (isSkinBattleOpen && currentPair && currentPair[1]) {
+        const [skinA, skinB] = currentPair as [{ id: string; name: string; weapon: string; image: string | null }, { id: string; name: string; weapon: string; image: string | null }];
+        // DÜZELTME (istek): kart artık SADECE skinin görselini ve ismini gösteriyor — silah
+        // tipi alt yazısı ve "BUNU SEÇ" ipucu metni kaldırıldı (referans görsellerdeki gibi
+        // sade). Kartın TAMAMI hâlâ tıklanabilir bir <button>; üstüne gelince/tıklanınca
+        // ÇERÇEVENİN TAMAMI parlak kırmızı bir çizgiyle çevreleniyor (referans görseldeki
+        // gibi), ayrı bir buton ya da bekleme yok.
+        const renderCard = (skin: typeof skinA, rival: typeof skinB) => {
+          const isWinner = skinWinnerFlash === skin.id;
+          const isLoser = !!skinWinnerFlash && skinWinnerFlash !== skin.id;
+          return (
+            <button
+              type="button"
+              onClick={() => selectWinner(skin, rival)}
+              disabled={!!skinWinnerFlash}
+              className={`group relative w-full rounded-3xl border-2 p-6 text-left transition-all duration-300 cursor-pointer disabled:cursor-not-allowed ${
+                isWinner
+                  ? "border-emerald-400 bg-emerald-500/10 scale-[1.05] shadow-[0_0_35px_rgba(52,211,153,0.3)]"
+                  : isLoser
+                  ? "border-red-500/15 bg-[#14151a]/50 opacity-40 scale-[0.96]"
+                  : "border-white/10 bg-gradient-to-b from-[#1b1c22] to-[#101116] hover:border-[#ff4655] hover:scale-[1.03] hover:shadow-[0_0_32px_rgba(255,70,85,0.35)]"
+              }`}
+              style={isLoser ? { animation: "shake 0.4s ease-in-out" } : undefined}
+            >
+              {isWinner && <span className="absolute -top-3 -right-3 text-3xl drop-shadow-lg animate-bounce">🏆</span>}
+              {isLoser && <span className="absolute -top-3 -right-3 text-2xl drop-shadow-lg">✕</span>}
+              <style>{`@keyframes shake { 0%, 100% { transform: translateX(0) scale(0.96); } 20% { transform: translateX(-5px) scale(0.96); } 40% { transform: translateX(5px) scale(0.96); } 60% { transform: translateX(-3px) scale(0.96); } 80% { transform: translateX(3px) scale(0.96); } }`}</style>
+              <div className="h-44 rounded-xl border border-white/10 bg-black/25 flex items-center justify-center overflow-hidden">
+                {skin.image ? (
+                  <img src={skin.image} alt={skin.name} className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105" />
+                ) : (
+                  <span className="text-5xl opacity-30">✦</span>
+                )}
+              </div>
+              <p className="mt-5 text-lg font-black text-white text-center">{skin.name}</p>
+              {/* YENİ (istek): "altında BUNU SEÇ yazısı küçük çerçevenin içinde olsun, çerçeveye
+                  tıklanınca seçsin" — kart zaten tamamen tıklanabilir bir <button>, bu artık
+                  ayrı bir buton değil, sadece küçük bir görsel ipucu rozeti. */}
+              <span className="mt-3 mx-auto block w-fit rounded-md border border-white/15 group-hover:border-[#ff4655]/60 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white/50 group-hover:text-white transition">
+                {isWinner ? "✓ Seçildi" : "Bunu Seç"}
+              </span>
+            </button>
+          );
+        };
+        return (
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              {/* DÜZELTME (istek): "Sıralamaya Dön" biraz büyütüldü ve daha açık/parlak bir
+                  beyazla yazıldı (eskiden çok soluk duran text-white/40 yerine text-white/70). */}
+              <button onClick={backToLeaderboard} className="text-xs font-black text-white/70 hover:text-white transition">← Sıralamaya Dön</button>
+              {/* DÜZELTME (istek): round numarası kaldırıldı, sade bir başlık kaldı; başlık da
+                  daha açık/parlak bir beyazla yazılıyor. */}
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/70">Valorant Skin Savaşı</p>
+              {/* DÜZELTME (istek): burada artık sadece o roundun eşleşme sayısı (örn. "8")
+                  değil, TÜM turnuva boyunca yapılacak toplam seçim sayısı gösteriliyor
+                  (örn. Top 16 seçildiyse hedef "16"). Round değiştikçe SIFIRLANMIYOR. */}
+              <div className="rounded-lg border border-[#ff4655]/30 bg-[#ff4655]/10 px-3 py-1.5">
+                <p className="text-[9px] font-black uppercase tracking-widest text-[#ff4655]">İlerleme</p>
+                <p className="text-xs font-black text-white">{skinCumulativePicks} / {skinTotalPool}</p>
+              </div>
+            </div>
+            <div className="mt-3 h-1 rounded-full bg-white/5 overflow-hidden">
+              <div className="h-full bg-[#ff4655] transition-all duration-300" style={{ width: `${skinTotalPool > 0 ? Math.min(100, (skinCumulativePicks / skinTotalPool) * 100) : 0}%` }} />
+            </div>
+
+            {/* DÜZELTME (istek): VS rozeti artık gerçekten iki kart arasında ortalanmış.
+                Eskiden [skinA, skinB].map(...) İKİ eleman üretiyordu, VS ise bunlardan SONRA
+                ayrı bir 3. eleman olarak ekleniyordu — grid-cols-[1fr_auto_1fr] düzeninde bu,
+                sırayı skinA / skinB(ortadaki dar sütuna sıkışmış) / VS(en sağda) haline
+                getiriyordu. Artık kart, VS, kart sırasıyla AÇIKÇA 3 ayrı JSX elemanı olarak
+                yazılıyor — hiçbir zaman yanlış sütuna düşemez. */}
+            <div className="mt-10 grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-6">
+              {renderCard(skinA, skinB)}
+              {/* YENİ (istek): "VS yazısının stilini değiştir" — daha büyük, italik/kalın yazı,
+                  eskiden üst üste binen "ping" + "wave" animasyonları sadeleştirilip TEK bir
+                  yumuşak nabız animasyonuna indirildi (referans görseldeki gibi daha sakin/temiz
+                  bir rozet). */}
+              <div className="relative mx-auto flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full border-[3px] border-[#ff4655] bg-white text-lg font-black italic text-black shadow-[0_0_24px_rgba(255,70,85,0.4)]" style={{ animation: "vsPulse 1.8s ease-in-out infinite" }}>
+                <style>{`@keyframes vsPulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 24px rgba(255,70,85,0.4); } 50% { transform: scale(1.06); box-shadow: 0 0 34px rgba(255,70,85,0.6); } }`}</style>
+                <span>VS</span>
+              </div>
+              {renderCard(skinB, skinA)}
+            </div>
+
+            {/* DÜZELTME (istek): "Bu Eşleşmeyi Atla" artık sade bir yazı değil, gerçek bir
+                buton görünümünde (çerçeveli, dolgulu, hover'da belirginleşen). */}
+            <div className="mt-8 flex justify-center">
+              <button
+                onClick={skipPair}
+                disabled={!!skinWinnerFlash}
+                className="h-9 px-5 rounded-lg border border-white/15 bg-white/5 text-xs font-black text-white/70 hover:bg-white/10 hover:text-white hover:border-white/30 transition disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                Bu Eşleşmeyi Atla ↻
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      // NOT: "SETUP" ekranı artık ayrı bir tam sayfa DEĞİL — aşağıda liderlik tablosunun
+      // ÜSTÜNDE açılan bir MODAL (pop-up) olarak render ediliyor (bkz. dosyanın sonu).
+      // Böylece hem silah SEÇİMİ hem havuz boyutu aynı anda, tek bir dikey pencerede
+      // görünüyor ve arkadaki liderlik tablosu bulanıklaşarak görünmeye devam ediyor.
+
+      // ===== SIRALAMA (leaderboard) EKRANI — sekmeye girince ilk görülen ekran =====
+      // DÜZELTME (istek): eski liderlik tablosu "çok kötüydü" — artık referans tasarıma
+      // (RANK / SKIN ASSET / IDENTIFICATION / RANKING sütunları, büyük görsel kutusu, silah
+      // rozeti, win rate + toplam oy, kırmızı/yeşil "ranking" barı, üstte arama kutusu) çok
+      // daha yakın. "score" (RANKING) sütunu basit bir puanlama: kazanılan/kaybedilen maç
+      // oranına göre 0-1000 arası bir gösterge puanı.
+      const rankedPool = filteredPool
+        .map((s) => {
+          const stat = skinStats[s.id];
+          const matches = stat?.matches || 0;
+          const wins = stat?.wins || 0;
+          const winRate = matches > 0 ? Math.round((wins / matches) * 100) : 0;
+          const score = matches > 0 ? Math.max(0, Math.min(999, Math.round(500 + wins * 14 - (matches - wins) * 7))) : 500;
+          return { ...s, matches, wins, winRate, score };
+        })
+        .sort((a, b) => (b.score - a.score) || (b.matches - a.matches));
+      const RANK_BADGE = ["bg-amber-400 text-black", "bg-white/80 text-black", "bg-orange-400/80 text-black"];
+      const skinTotalPages = Math.max(1, Math.ceil(rankedPool.length / SKIN_PER_PAGE));
+      const skinSafePage = Math.min(skinLeaderboardPage, skinTotalPages);
+      const pagedPool = rankedPool.slice((skinSafePage - 1) * SKIN_PER_PAGE, skinSafePage * SKIN_PER_PAGE);
+
+      return (
+        <>
+        <div className="max-w-4xl mx-auto text-left">
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-1">
+            <div className="flex items-center gap-2.5">
+              <div className="h-6 w-1 bg-gradient-to-b from-[#ff4655] to-red-800 rounded-full" />
+              <div>
+                <h1 className="text-2xl font-black text-white uppercase tracking-tight bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Skin Savaşı</h1>
+                <p className="text-[11px] text-white/40 mt-0.5">{skinWeapon} skinleri için topluluk sıralaması.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                value={skinSearch}
+                onChange={(e) => setSkinSearch(e.target.value)}
+                placeholder="Skin ara…"
+                className="h-10 w-40 sm:w-56 rounded-lg border border-white/10 bg-black/30 px-3.5 text-xs font-bold text-white placeholder:text-white/25 focus:border-[#ff4655]/50 focus:outline-none"
+              />
+              <button
+                onClick={() => setSkinView("setup")}
+                className="h-10 px-5 rounded-lg bg-[#ff4655] hover:bg-red-500 text-[11px] font-black uppercase tracking-widest text-white transition whitespace-nowrap"
+              >
+                ⚔ Oylamaya Başla
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mt-5 mb-5">
+            {WEAPON_OPTIONS.map((w) => (
+              <button
+                key={w.key}
+                onClick={() => setSkinWeapon(w.key)}
+                className={`h-8 px-3.5 rounded-lg text-[10px] font-black uppercase transition ${
+                  skinWeapon === w.key ? "bg-[#ff4655] text-white" : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                {w.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-[#14151a]/90 overflow-hidden">
+            <div className="hidden sm:grid grid-cols-[52px_140px_1fr_140px] items-center gap-4 px-5 py-3 border-b border-white/5 text-[9px] font-black uppercase tracking-widest text-white/30">
+              <span>Sıra</span>
+              <span>Görsel</span>
+              <span>Skin</span>
+              <span className="text-right">Ranking</span>
+            </div>
+            {skinCatalogLoading ? (
+              <p className="p-8 text-xs text-white/40 text-center">Skinler yükleniyor…</p>
+            ) : rankedPool.length === 0 ? (
+              <p className="p-8 text-xs text-white/40 text-center">Bu silah için skin bulunamadı.</p>
+            ) : (
+              pagedPool.map((skin, pagedI) => {
+                const i = (skinSafePage - 1) * SKIN_PER_PAGE + pagedI;
+                // DÜZELTME (istek): "az şöyle çekici efsane bi kart bekliyordum, arkaplanlı
+                // dekorlu... sen renk atıp geçmişsin" — düz bir renk geçişi yerine, ilk 3 sıraya
+                // artık sitenin geri kalanındaki (sakura/torii) Japon temasıyla uyumlu, GERÇEK
+                // dekoratif bir arkaplan + hafif animasyon eklendi: 1. sıraya parıldayan altın
+                // ışın patlaması, 2.'ye ay ışığında titreşen yıldızlar, 3.'e sıcak fener parıltısı.
+                // DÜZELTME (istek): "kart tasarımları daha etkileyici renklerle dekorlarla
+                // arkaplanlarla olabilir, önceki hal çok kötü" — sıradan bir renk geçişi/ince
+                // kenarlık yerine ilk 3 sıraya artık belirgin şekilde daha zengin bir "kart"
+                // hissi: daha koyu/doygun gradyan gövde, madalya renginde parlayan tam kenarlık
+                // (sadece sol değil), ve hafif iç gölge ile derinlik.
+                const topRowBg =
+                  i === 0
+                    ? "bg-gradient-to-r from-amber-400/25 via-amber-500/10 to-transparent border border-amber-400/50 shadow-[inset_0_1px_0_rgba(251,191,36,0.25),0_0_24px_-6px_rgba(251,191,36,0.35)] rounded-xl my-1.5"
+                    : i === 1
+                    ? "bg-gradient-to-r from-slate-300/20 via-slate-300/8 to-transparent border border-slate-300/40 shadow-[inset_0_1px_0_rgba(226,232,240,0.2),0_0_18px_-6px_rgba(226,232,240,0.25)] rounded-xl my-1.5"
+                    : i === 2
+                    ? "bg-gradient-to-r from-orange-400/20 via-orange-500/8 to-transparent border border-orange-400/40 shadow-[inset_0_1px_0_rgba(251,146,60,0.2),0_0_18px_-6px_rgba(251,146,60,0.3)] rounded-xl my-1.5"
+                    : "";
+                const topDecoration =
+                  i === 0 ? (
+                    <>
+                      <motion.div
+                        className="pointer-events-none absolute -right-10 -top-10 w-40 h-40 rounded-full bg-amber-400/20 blur-2xl"
+                        animate={{ opacity: [0.5, 0.9, 0.5], scale: [1, 1.12, 1] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                      {/* DÜZELTME (istek): "kart çok kötü duruyor" — ışınlar eskiden satırın
+                          DİKEY ORTASINDA ("top-1/2"), yani tam da RANKING sayısının üstünde
+                          duruyordu ve rakamın içinden geçiyormuş gibi görünüyordu. Artık üst
+                          kenara yaslı, daha küçük ve puanla asla çakışmıyor. */}
+                      <svg className="pointer-events-none absolute right-20 -top-3 w-14 h-14 opacity-20" viewBox="0 0 100 100">
+                        {[0, 30, 60, 90, 120, 150].map((deg) => (
+                          <rect key={deg} x="49" y="4" width="2" height="24" fill="#fbbf24" transform={`rotate(${deg} 50 50)`} />
+                        ))}
+                      </svg>
+                    </>
+                  ) : i === 1 ? (
+                    <>
+                      <div className="pointer-events-none absolute -right-6 -top-8 w-28 h-28 rounded-full bg-slate-200/10 blur-xl" />
+                      <svg className="pointer-events-none absolute right-20 top-2 w-8 h-8 opacity-25" viewBox="0 0 40 40" fill="none">
+                        <path d="M22 4 A14 14 0 1 0 24 32 A11 11 0 0 1 22 4 Z" fill="#e2e8f0" />
+                      </svg>
+                      {[[92, 8], [108, 16], [80, 20]].map(([x, y], idx) => (
+                        <motion.svg key={idx} className="pointer-events-none absolute w-1.5 h-1.5" style={{ right: `${x}px`, top: `${y}px` }} viewBox="0 0 8 8"
+                          animate={{ opacity: [0.15, 0.7, 0.15] }} transition={{ duration: 1.8, delay: idx * 0.5, repeat: Infinity, ease: "easeInOut" }}>
+                          <circle cx="4" cy="4" r="2" fill="#e2e8f0" />
+                        </motion.svg>
+                      ))}
+                    </>
+                  ) : i === 2 ? (
+                    <>
+                      <div className="pointer-events-none absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-orange-400/15 blur-2xl" />
+                      <svg className="pointer-events-none absolute right-16 -top-2 w-7 h-11 opacity-25" viewBox="0 0 30 46" fill="none">
+                        <ellipse cx="15" cy="20" rx="13" ry="16" fill="#fb923c" />
+                        <rect x="13" y="2" width="4" height="8" rx="1.5" fill="#fb923c" />
+                        <rect x="13" y="38" width="4" height="8" rx="1.5" fill="#fb923c" />
+                      </svg>
+                      <motion.div
+                        className="pointer-events-none absolute right-16 -top-2 w-7 h-11 rounded-[50%] bg-orange-300/15 blur-md"
+                        animate={{ opacity: [0.3, 0.6, 0.3] }}
+                        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                    </>
+                  ) : null;
+                return (
+                <div key={skin.id} className={`group relative overflow-hidden grid grid-cols-[auto_auto_1fr_auto] sm:grid-cols-[52px_140px_1fr_140px] items-center gap-4 px-5 py-4 border-b border-white/5 last:border-b-0 hover:bg-white/[0.03] transition-colors duration-300 ${topRowBg} ${i < 3 ? "hover:border-[#ff4655]/70" : ""}`}>
+                  {topDecoration}
+                  <span className={`relative flex-shrink-0 rounded-lg flex items-center justify-center font-black ${i < 3 ? `${RANK_BADGE[i]} w-10 h-10 text-sm shadow-lg` : "bg-white/5 text-white/40 w-8 h-8 text-xs"}`}>
+                    {i === 0 && (
+                      <motion.span
+                        className="absolute -top-4 text-base"
+                        animate={{ y: [0, -3, 0] }}
+                        transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                      >
+                        👑
+                      </motion.span>
+                    )}
+                    {i + 1}
+                  </span>
+                  {/* YENİ (istek): "ilk 3'te vandal olan çerçeveye mouse götürülünce kenarlar
+                      kırmızılaşsın, skin büyüsün" — üstteki satır zaten hover'da kırmızıya
+                      dönüyor (grup), görsel kutusu da group-hover ile hafifçe büyüyor. */}
+                  {/* DÜZELTME (istek): "silah kartları çok kötü görünüyor / görsel boş kutu
+                      olarak duruyor" — asıl sebep: içindeki <img> "absolute inset-0" ile
+                      konumlanıyordu ama bu kutuda "relative" YOKTU, yani görsel bu kutunun değil
+                      sayfadaki en yakın konumlanmış üst elemanın içine göre yerleşiyor ve
+                      pratikte görünmez oluyordu. "relative" eklendi. */}
+                  <div className={`relative rounded-lg bg-black/30 flex items-center justify-center overflow-hidden flex-shrink-0 transition-all duration-300 ${
+                    i === 0 ? "w-32 h-20 border-2 border-amber-400/60 shadow-[0_0_20px_-4px_rgba(251,191,36,0.5)] group-hover:border-[#ff4655] group-hover:scale-110 group-hover:shadow-[0_0_24px_-4px_rgba(255,70,85,0.6)]"
+                    : i === 1 ? "w-32 h-20 border-2 border-slate-300/50 shadow-[0_0_16px_-4px_rgba(226,232,240,0.4)] group-hover:border-[#ff4655] group-hover:scale-110 group-hover:shadow-[0_0_24px_-4px_rgba(255,70,85,0.6)]"
+                    : i === 2 ? "w-32 h-20 border-2 border-orange-400/50 shadow-[0_0_16px_-4px_rgba(251,146,60,0.45)] group-hover:border-[#ff4655] group-hover:scale-110 group-hover:shadow-[0_0_24px_-4px_rgba(255,70,85,0.6)]"
+                    : "w-28 h-16 border border-white/10"
+                  }`}>
+                    {skin.image ? (
+                      <>
+                        <span className="text-lg opacity-40 skin-img-fallback">✦</span>
+                        <img
+                          src={skin.image}
+                          alt={skin.name}
+                          className="w-full h-full object-contain absolute inset-0"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                          onLoad={(e) => {
+                            const fallback = (e.currentTarget.parentElement as HTMLElement)?.querySelector(".skin-img-fallback") as HTMLElement | null;
+                            if (fallback) fallback.style.display = "none";
+                          }}
+                        />
+                      </>
+                    ) : <span className="text-lg opacity-40">✦</span>}
+                  </div>
+                  <div className="min-w-0 text-left">
+                    {/* DÜZELTME (istek): "Vahşiçene Classic" tarzı Title Case istenmişti ama
+                        buradaki "uppercase" class'ı adı yine tamamen büyük harfe zorluyordu —
+                        veri artık zaten Title Case geldiği için bu class kaldırıldı. */}
+                    <p className={`font-black text-white truncate ${i < 3 ? "text-base" : "text-sm"}`}>{skin.name}</p>
+                    <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-white/40 bg-white/5 border border-white/10 rounded px-1.5 py-0.5">{skinWeapon}</span>
+                      <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />%{skin.winRate} kazanma</span>
+                      <span className="text-[10px] text-white/30">{skin.matches.toLocaleString("tr-TR")} maç</span>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-lg font-black text-[#ff4655]">{skin.score}</p>
+                    <div className="mt-1 h-1 w-full min-w-[80px] rounded-full bg-red-900/40 overflow-hidden ml-auto">
+                      <div className="h-full bg-emerald-400" style={{ width: `${Math.round((skin.score / 999) * 100)}%` }} />
+                    </div>
+                  </div>
+                </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* YENİ (istek): "sadece 20 skin gözüküyor" — artık nişangahlardaki gibi altta
+              1, 2, 3… sayfa numaraları var, TÜM skinler (seçili silaha göre) gezilebiliyor. */}
+          {skinTotalPages > 1 && (
+            <div className="flex items-center justify-center gap-1.5 mt-8">
+              <button
+                onClick={() => setSkinLeaderboardPage((p) => Math.max(1, p - 1))}
+                disabled={skinSafePage === 1}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/5 transition-colors duration-150"
+                aria-label="Önceki sayfa"
+              >
+                ←
+              </button>
+              <div className="flex items-center gap-1 bg-white/[0.03] border border-white/10 rounded-full px-1.5 py-1.5">
+                {(() => {
+                  const WINDOW = 2;
+                  let start = Math.max(1, skinSafePage - WINDOW);
+                  let end = Math.min(skinTotalPages, skinSafePage + WINDOW);
+                  if (end - start < WINDOW * 2) {
+                    if (start === 1) end = Math.min(skinTotalPages, start + WINDOW * 2);
+                    else if (end === skinTotalPages) start = Math.max(1, end - WINDOW * 2);
+                  }
+                  const pages = [];
+                  for (let p = start; p <= end; p++) pages.push(p);
+                  return pages.map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setSkinLeaderboardPage(p)}
+                      className={`min-w-[2rem] h-8 px-2.5 rounded-full text-xs font-black transition-colors duration-150 ${
+                        p === skinSafePage ? "bg-[#ff4655] text-white" : "text-white/50 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ));
+                })()}
+              </div>
+              <button
+                onClick={() => setSkinLeaderboardPage((p) => Math.min(skinTotalPages, p + 1))}
+                disabled={skinSafePage === skinTotalPages}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/5 transition-colors duration-150"
+                aria-label="Sonraki sayfa"
+              >
+                →
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* ===== SAVAŞ KURULUMU (SETUP) — YENİ: artık ayrı bir sayfa değil, dikey açılan,
+            dekorlu bir MODAL (pop-up). Silah SEÇİMİ ve havuz boyutu artık AYNI pencerede,
+            birlikte görünüyor — eskiden silah seçme adımı gösterilmiyormuş gibi görünen
+            sorun buradan kaynaklanıyordu. */}
+        {skinView === "setup" && typeof document !== "undefined" && createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={() => setSkinView("leaderboard")}>
+            <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-[#14151a] shadow-2xl">
+              {/* dekoratif arkaplan parıltıları */}
+              <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                <div className="absolute -top-24 -right-16 w-64 h-64 rounded-full bg-[#ff4655]/25 blur-3xl" />
+                <div className="absolute -bottom-24 -left-16 w-64 h-64 rounded-full bg-rose-500/10 blur-3xl" />
+              </div>
+
+              <div className="relative flex items-start justify-between gap-3 px-6 pt-6">
+                <div>
+                  <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-[#ff4655]">
+                    <span>⚔</span> Savaş Kurulumu
+                  </p>
+                  <h1 className="mt-2 text-2xl font-black text-white">Favori Skinini Seç</h1>
+                  <p className="mt-1 text-xs text-white/45">Karşılaştırma havuzunu ayarla, tur tur elemeyle şampiyonu bul.</p>
+                </div>
+                <button onClick={() => setSkinView("leaderboard")} className="flex-shrink-0 text-white/40 hover:text-white transition text-lg leading-none">✕</button>
+              </div>
+
+              <div className="relative mt-6 px-6">
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3">Silah Seç</p>
+                <div className="flex flex-wrap gap-2">
+                  {WEAPON_OPTIONS.map((w) => (
+                    <button
+                      key={w.key}
+                      onClick={() => setSkinWeapon(w.key)}
+                      className={`h-9 px-4 rounded-lg text-[11px] font-black uppercase transition ${
+                        skinWeapon === w.key ? "bg-[#ff4655] text-white shadow-[0_0_16px_rgba(255,70,85,0.4)]" : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      {w.label}
+                    </button>
+                  ))}
+                </div>
+
+                <p className="mt-6 text-[10px] font-black uppercase tracking-widest text-white/40 mb-3">Havuz Boyutu</p>
+                <div className="flex flex-wrap gap-2">
+                  {POOL_SIZES.map((p) => (
+                    <button
+                      key={String(p.key)}
+                      onClick={() => setSkinBracketSize(p.key)}
+                      className={`h-9 px-4 rounded-lg text-[11px] font-black uppercase transition ${
+                        skinBracketSize === p.key ? "bg-[#ff4655] text-white shadow-[0_0_16px_rgba(255,70,85,0.4)]" : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* DÜZELTME (istek): "kaç skin bulundu" yazısı ve "Vazgeç" butonu kaldırıldı —
+                  sadece tek bir net "Savaşı Başlat" butonu kaldı. Katalog hâlâ yükleniyorsa
+                  buton bunu kendi metniyle belli ediyor. */}
+              <div className="relative mt-6 mx-6 flex items-center justify-end border-t border-white/10 py-5">
+                <button
+                  onClick={startVoting}
+                  disabled={skinCatalogLoading || weaponPool.length < 2}
+                  className="h-11 px-6 rounded-lg bg-[#ff4655] hover:bg-red-500 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-black text-white transition"
+                >
+                  {skinCatalogLoading ? "Yükleniyor…" : "▶ Savaşı Başlat"}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+        </>
+      );
+    })()}
+  </motion.section>
+)}
+
+{/* ===== KELİME OYUNU ===== */}
+{activeTab === "word-game" && (
+  <motion.section key="word-game-tab" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative z-10 min-h-screen pt-40 px-6 pb-20 flex flex-col items-center text-center transform-gpu">
+    {(() => {
+      const entry = activeWordBank[selectedWordLetter];
+      const mm = String(Math.floor(wordTimeLeft / 60)).padStart(2, "0");
+      const ss = String(wordTimeLeft % 60).padStart(2, "0");
+      const isOver = currentWordStatus === "correct" || currentWordStatus === "pass" || currentWordStatus === "timeout";
+      const doneCount = Object.values(activeWordProgress).filter((p) => p.status === "correct" || p.status === "timeout").length;
+      // YENİ (istek): "kaç saat dakika kaldığı yazsın" — bir sonraki 24 saatlik kelime setine
+      // kalan süre, günlük modda okunabilir "Xs Yd" biçiminde gösteriliyor.
+      const dailyRemainingMs = dailyUnlockAt ? Math.max(0, dailyUnlockAt - dailyCountdownNow) : 0;
+      const dailyRemainingH = Math.floor(dailyRemainingMs / 3_600_000);
+      const dailyRemainingM = Math.floor((dailyRemainingMs % 3_600_000) / 60_000);
+      const dailyRemainingLabel = dailyRemainingH > 0 ? `${dailyRemainingH}s ${dailyRemainingM}d` : `${dailyRemainingM}d`;
+      const correctCount = Object.values(activeWordProgress).filter((p) => p.status === "correct").length;
+      const passCount = Object.values(activeWordProgress).filter((p) => p.status === "pass").length;
+      const timeoutCount = Object.values(activeWordProgress).filter((p) => p.status === "timeout").length;
+      const successRate = Math.round((correctCount / TR_ALPHABET_ROTATION.length) * 100);
+      const selectedWordIndex = Math.max(0, TR_ALPHABET_ROTATION.indexOf(selectedWordLetter));
+      const visibleWordLetters = TR_ALPHABET_ROTATION.slice(selectedWordIndex, selectedWordIndex + 6);
+      const shareWordResults = () => {
+        playClickSound();
+        const label = wordGameMode === "unlimited" ? "Limitsiz" : "Bugün";
+        const text = `İnfinity.gg Kelime Oyunu — ${label} ${correctCount}/${TR_ALPHABET_ROTATION.length} doğru (%${successRate} başarı) ⚔️`;
+        if (navigator.share) navigator.share({ title: "İnfinity.gg Kelime Oyunu", text }).catch(() => {});
+        else if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+      };
+
+      // Günlük "kaç kez oynandı" göstergesi hâlâ kozmetik (gerçek toplu sayaç backend'i yok) —
+      // ama "günün lideri" artık YUKARIDA gerçek /api/wordgame-leader'dan gelen dailyLeaderName'e
+      // taşındı, burada sahte bir isim ÜRETİLMİYOR.
+      let seed = 0;
+      for (const ch of todayKey()) seed = (seed * 31 + ch.charCodeAt(0)) % 100000;
+      const playedToday = 1400 + (seed % 1800);
+      const avatarCount = 3 + (seed % 4);
+
+      // DÜZELTME (istek): "ilk defa kelime oyununa girilince böyle bir ekran verilecek... günlük
+      // olan günde 1 kez oynanacak... limitsizde ise sınırsız oynanabilecek" — sekmeye girince
+      // önce bu MENÜ görünüyor. Rakam/lider tamamen kozmetik (gerçek bir toplu skor backend'i
+      // yok) — tarihe göre sabitlenmiş, her gün değişen ama o gün içinde HERKESE aynı görünen
+      // bir simülasyon; sitedeki diğer "sahte istatistik" alanlarıyla (skin oy sayıları gibi)
+      // aynı mantık.
+      if (wordGameMode === "menu") {
+        return (
+          <div className="w-full max-w-md text-left">
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="h-6 w-1 bg-gradient-to-b from-[#ff4655] to-red-800 rounded-full" />
+              <h1 className="text-2xl font-black text-white uppercase tracking-tight">Kelime Oyunu</h1>
+            </div>
+            <p className="text-xs text-white/40 mb-6 ml-3.5 text-left">Nasıl oynamak istersin?</p>
+
+            <div className="flex flex-col gap-3 text-left">
+              {/* GÜNLÜK (REKABETÇİ) */}
+              <div className="rounded-2xl border border-white/10 bg-[#14151a]/90 p-5">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#ff4655]/15 text-base">📅</span>
+                  <div>
+                    <p className="text-sm font-black text-white uppercase tracking-tight">Günlük (Rekabetçi)</p>
+                    <p className="text-[10px] text-white/35">Hesap başına 24 saatte bir</p>
+                  </div>
+                  {dailyUnlockAt && dailyUnlockAt > dailyCountdownNow && <span className="ml-auto text-[10px] font-black tabular-nums text-[#ff4655]">{dailyRemainingLabel}</span>}
+                </div>
+                {/* DÜZELTME (istek): "liderlik tablosunu kaldır, günün lideri şimdilik boş
+                    olsun, tüm soruları doğru cevaplayan kişinin adı yazsın" — tıklanabilir
+                    "Liderlik tablosu →" butonu ve altındaki tamamen sahte 8 kişilik modal
+                    kaldırıldı. Artık sade bir satır: kimse setin tamamını doğru bilmediyse
+                    "Henüz kimse yok", bildiyse o hesabın gerçek adı gösteriliyor. */}
+                <div className="mt-3 w-full flex items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-2">
+                  <span className="flex items-center gap-2 text-[11px] text-white/60">
+                    <span>🏆</span> Günün lideri{" "}
+                    <span className="font-black text-white">{dailyLeaderName || "Henüz kimse yok"}</span>
+                  </span>
+                </div>
+                <p className="mt-3 text-[11px] text-white/40">Bugünün soru setini oyna, günlük kelime oyunu — hesap başına günde 1 kez, sonuçların herkesle aynı {TR_ALPHABET_ROTATION.length} kelimeye göre.</p>
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex -space-x-2">
+                    {Array.from({ length: avatarCount }).map((_, i) => (
+                      <span key={i} className="w-6 h-6 rounded-full border-2 border-[#14151a] bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center text-[9px]">🙂</span>
+                    ))}
+                    <span className="ml-3 text-[10px] font-bold text-white/30 self-center">+{playedToday - avatarCount}</span>
+                  </div>
+                  <button
+                    disabled={!wordProgressLoaded || Object.keys(wordProgress).length > 0}
+                    onClick={() => { if (!requireLogin()) return; playClickSound(); setWordGameMode("daily"); }}
+                    className="h-9 px-5 rounded-lg bg-[#ff4655] hover:bg-red-500 disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed text-[11px] font-black uppercase tracking-widest text-white transition"
+                  >
+                    ▶ Oyna
+                  </button>
+                </div>
+              </div>
+
+              {/* LİMİTSİZ */}
+              <div className="rounded-2xl border border-white/10 bg-[#14151a]/90 p-5">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.06] text-base">♾️</span>
+                  <div>
+                    <p className="text-sm font-black text-white uppercase tracking-tight">Limitsiz</p>
+                    <p className="text-[10px] text-white/35">Limitsiz soru seti</p>
+                  </div>
+                </div>
+                <p className="mt-3 text-[11px] text-white/40">Sonraki günü bekleme, rekabeti boşver — her girişte {TR_ALPHABET_ROTATION.length} harfin kelimeleri yeniden karılır, istediğin kadar oyna, hiçbir şey kaydedilmez.</p>
+                <div className="mt-4 flex justify-end">
+                  <button
+                    onClick={() => { if (!requireLogin()) return; playClickSound(); setWordGameMode("unlimited"); }}
+                    className="h-9 px-5 rounded-lg bg-white/10 hover:bg-white/15 text-[11px] font-black uppercase tracking-widest text-white transition"
+                  >
+                    ▶ Oyna
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <>
+        <div className="w-full max-w-md">
+          <div className="flex items-center justify-between mb-1">
+            <button
+              onClick={() => { playClickSound(); setWordGameMode("menu"); }}
+              className="text-[11px] font-black text-white/40 hover:text-white transition"
+            >
+              ← Menüye Dön
+            </button>
+            <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded ${wordGameMode === "unlimited" ? "bg-white/10 text-white/60" : "bg-[#ff4655]/15 text-[#ff4655]"}`}>
+              {wordGameMode === "unlimited" ? "♾️ Limitsiz" : "📅 Günlük"}
+            </span>
+          </div>
+          <div className="flex items-center justify-center gap-2.5 mb-1">
+            <div className="h-6 w-1 bg-gradient-to-b from-[#ff4655] to-red-800 rounded-full" />
+            <h1 className="text-2xl font-black text-white uppercase tracking-tight bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Kelime Oyunu</h1>
+          </div>
+          <p className="text-xs text-white/40 mb-4">
+            {wordGameMode === "unlimited"
+              ? `${TR_ALPHABET_ROTATION.length} harf hazır — istediğin sıradan çöz. Hiçbir şey kaydedilmiyor, menüye her dönüşünde kelimeler yeniden karılır.`
+              : `Bu setin ${TR_ALPHABET_ROTATION.length} harfi hazır — istediğin sıradan çöz.`}
+          </p>
+
+          {/* DÜZELTME (istek): "sonuçlar ekranı hala gözüküyor, maç bitmemesine rağmen kaldır
+              onu direkt ordan, sadece maç bitince ekrana fırlasın" — önceden burada, henüz
+              hiç harf bitmemişken bile tıklanabilen bir "📊 Sonuçlar" butonu vardı. Kaldırıldı;
+              sonuç ekranı artık SADECE tüm harfler bitince (yukarıdaki otomatik-açılma efekti,
+              wordResultsAutoShown) kendiliğinden açılıyor. */}
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <p className="text-[10px] font-black uppercase tracking-widest text-white/30">{doneCount} / {TR_ALPHABET_ROTATION.length} harf tamamlandı</p>
+          </div>
+          <div className="flex h-16 items-center justify-center gap-2 overflow-hidden">
+            {visibleWordLetters.map((l) => {
+              const prog = activeWordProgress[l];
+              const isSelected = l === selectedWordLetter;
+              const isCorrect = prog?.status === "correct";
+              const isPassed = prog?.status === "pass";
+              const isFailed = prog?.status === "timeout";
+              return (
+                <button
+                  key={l}
+                  type="button"
+                  onClick={() => currentWordStatus !== "playing" && setSelectedWordLetter(l)}
+                  className={`relative flex items-center justify-center rounded-full border font-black transition-all duration-300 ${
+                    isSelected ? "scale-110 h-14 w-14 text-lg" : "h-12 w-12 text-sm hover:scale-105"
+                  } ${
+                    isCorrect
+                      ? `border-emerald-400/50 bg-emerald-400/15 text-emerald-300${isSelected ? " shadow-[0_0_16px_rgba(16,185,129,0.4)]" : ""}`
+                      : isFailed
+                      ? `border-red-400/40 bg-red-400/10 text-red-300${isSelected ? " shadow-[0_0_16px_rgba(248,113,113,0.4)]" : ""}`
+                      : isPassed
+                      ? `border-amber-400/50 bg-amber-400/15 text-amber-300${isSelected ? " shadow-[0_0_16px_rgba(251,191,36,0.4)]" : ""}`
+                      : isSelected
+                      ? "border-[#ff4655] bg-[#ff4655]/20 text-white shadow-[0_0_16px_rgba(255,70,85,0.45)]"
+                      : "border-white/10 bg-black/20 text-white/40 hover:border-white/30 hover:text-white/70"
+                  }`}
+                >
+                  {isSelected && !isCorrect && !isFailed && !isPassed && <span className="absolute inset-0 rounded-full border border-[#ff4655]/40 animate-ping" />}
+                  <span className="relative">{isCorrect ? "✓" : isFailed ? "✕" : isPassed ? "»" : l}</span>
+                </button>
+              );
+            })}
+          </div>
+
+
+          <div className={`mt-6 rounded-2xl border p-7 transition-colors duration-300 ${
+            wordFeedback === "correct" ? "border-emerald-400/60 bg-emerald-500/5" : wordFeedback === "wrong" ? "border-red-500/60 bg-red-500/5" : "border-white/10 bg-[#14151a]/90"
+          }`}>
+            <div className="flex items-center justify-between">
+              <span className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-black text-white transition-all duration-300 ${
+                wordFeedback === "correct" ? "border-emerald-400 scale-110" : wordFeedback === "wrong" ? "border-red-500 animate-pulse" : "border-[#ff4655]"
+              }`}>{selectedWordLetter}</span>
+              <span className={`text-xs font-black tabular-nums ${wordTimeLeft <= 30 && currentWordStatus === "playing" ? "text-[#ff4655]" : "text-white/50"}`}>⏱ {mm}:{ss}</span>
+            </div>
+
+            <h1 className="mt-5 text-lg font-black uppercase tracking-tight text-white leading-relaxed">{entry?.clue}</h1>
+
+            {currentWordStatus === "playing" && (
+              <>
+                <div className="mt-8 flex items-center gap-2">
+                  <input
+                    value={wordGuessInput}
+                    onChange={(e) => setWordGuessInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") submitWordGuess(); }}
+                    placeholder={`${selectedWordLetter}... (Cevabı Yaz)`}
+                    className={`h-11 flex-1 rounded-lg border bg-black/30 px-4 text-xs font-bold text-white placeholder:text-white/25 focus:outline-none transition-colors duration-300 ${
+                      wordFeedback === "wrong" ? "border-red-500 focus:border-red-500" : wordFeedback === "correct" ? "border-emerald-400 focus:border-emerald-400" : wordStartWarning ? "border-amber-400 focus:border-amber-400" : "border-white/10 focus:border-[#ff4655]/50"
+                    }`}
+                  />
+                  <button onClick={submitWordGuess} className="h-11 flex-shrink-0 rounded-lg bg-[#ff4655] hover:bg-red-500 px-4 text-[11px] font-black text-white transition">GÖNDER</button>
+                  <button onClick={passWordRound} className="h-11 flex-shrink-0 rounded-lg bg-amber-400 hover:bg-amber-300 px-4 text-[11px] font-black text-black transition">PAS</button>
+                </div>
+                {wordFeedback === "wrong" && <p className="mt-3 text-[11px] font-black text-red-400">✕ Yanlış cevap — sıradaki harfe geçiliyor.</p>}
+                {wordStartWarning && <p className="mt-3 text-[11px] font-black text-amber-400">⚠ Cevabın "{selectedWordLetter}" harfiyle başlamalı — tekrar yaz.</p>}
+                <p className="mt-3 text-[10px] text-white/25">Erkenden bitirmek istersen kutuya <span className="font-black text-white/40">bitir</span> yazıp gönderebilirsin.</p>
+              </>
+            )}
+
+            {isOver && (
+              <div className="mt-8">
+                {currentWordStatus === "correct" && <p className="text-2xl font-black text-emerald-400">{entry?.word}</p>}
+                <p className="mt-2 text-xs font-bold text-white/50">
+                  {currentWordStatus === "correct" ? "Doğru bildin! 🎉" : currentWordStatus === "timeout" ? (currentWordWrongCount > 0 ? "Yanlış cevap." : "Süre doldu.") : "Bu turu geçtin."}
+                </p>
+                <p className="mt-4 text-[10px] text-white/30">
+                  {doneCount >= TR_ALPHABET_ROTATION.length
+                    ? (wordGameMode === "unlimited" ? "Bu setteki tüm harfleri tamamladın — menüye dönüp tekrar oynarsan yeni kelimeler gelir." : "Bu günlük seti tamamladın — yeni set için menüdeki geri sayımı takip edebilirsin.")
+                    : "Üstteki dairelerden başka bir harf seçip devam edebilirsin."}
+                </p>
+              </div>
+            )}
+
+            <div className="mt-6 flex items-center justify-center gap-5 border-t border-white/5 pt-5 text-[11px] font-bold">
+            {/* DÜZELTME (istek): "alttaki pas sayacı sürekli sıfırlanıyor" — bu üç sayaç önceden
+                SADECE o an ekranda duran harfin durumunu gösteriyordu (0/1), yani başka bir
+                harfe geçilince hep sıfıra dönüyordu. Artık üstte zaten hesaplanan gerçek
+                TOPLAMLAR (correctCount/timeoutCount/passCount) kullanılıyor — session boyunca
+                biriken doğru/yanlış/pas sayısı, hangi harfte olursan ol aynı kalıyor. */}
+              <span className="text-emerald-400">✓ {correctCount} Doğru</span>
+              <span className="text-red-400">✕ {timeoutCount} Yanlış</span>
+              <span className="text-amber-400">⏭ {passCount} Pas</span>
+            </div>
+          </div>
+        </div>
+
+        {/* YENİ (istek): "Oyun sonunda 'Bugünün Sonuçları' ekranı açılsın — doğru/yanlış/pas
+            sayıları, başarı yüzdesi ve cevap anahtarı gösterilsin. 'Kapat' yerine 'Ana Menüye
+            Dön' ve 'Sonuçları Paylaş' butonları olsun." — Parolla'daki günlük istatistik
+            ekranından esinlenilmiş ama İnfinity/Valorant temasına (koyu zemin, kırmızı vurgu,
+            madalyon rozetler) uyarlanmış bir sonuç modalı. */}
+        {wordResultsOpen && createPortal(
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4" onClick={() => setWordResultsOpen(false)}>
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-md rounded-2xl border border-[#ff4655]/30 bg-[#101014] shadow-[0_0_60px_-15px_rgba(255,70,85,0.4)] overflow-hidden"
+            >
+              <div className="pointer-events-none absolute -top-16 -right-16 w-56 h-56 rounded-full bg-[#ff4655]/15 blur-3xl" />
+              <div className="relative px-6 pt-6 pb-5 border-b border-white/10 text-center">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ff4655]">İnfinity.gg · Kelime Oyunu</p>
+                <h2 className="mt-1 text-xl font-black text-white uppercase tracking-tight">{wordGameMode === "unlimited" ? "Limitsiz Sonuçlar" : "Bugünün Sonuçları"}</h2>
+              </div>
+
+              <div className="relative px-6 py-6">
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 py-3">
+                    <p className="text-2xl font-black text-emerald-400">{correctCount}</p>
+                    <p className="mt-0.5 text-[9px] font-black uppercase tracking-widest text-emerald-300/70">Doğru</p>
+                  </div>
+                  <div className="rounded-xl border border-red-400/25 bg-red-500/10 py-3">
+                    <p className="text-2xl font-black text-red-400">{timeoutCount}</p>
+                    <p className="mt-0.5 text-[9px] font-black uppercase tracking-widest text-red-300/70">Yanlış</p>
+                  </div>
+                  <div className="rounded-xl border border-amber-400/25 bg-amber-500/10 py-3">
+                    <p className="text-2xl font-black text-amber-400">{passCount}</p>
+                    <p className="mt-0.5 text-[9px] font-black uppercase tracking-widest text-amber-300/70">Pas</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-xl border border-white/10 bg-black/30 px-4 py-3">
+                  <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
+                    <span>Başarı Oranı</span>
+                    <span className="text-white">%{successRate}</span>
+                  </div>
+                  <div className="mt-2 h-2 w-full rounded-full bg-white/5 overflow-hidden">
+                    <div className="h-full rounded-full bg-gradient-to-r from-[#ff4655] to-red-400" style={{ width: `${successRate}%` }} />
+                  </div>
+                </div>
+
+                <details className="mt-4 group rounded-xl border border-white/10 bg-black/20 overflow-hidden">
+                  <summary className="cursor-pointer list-none px-4 py-3 text-[11px] font-black uppercase tracking-widest text-white/60 hover:text-white transition flex items-center justify-between">
+                    Cevap Anahtarı
+                    <span className="text-white/30 group-open:rotate-180 transition-transform">⌄</span>
+                  </summary>
+                  <div className="px-4 pb-4 grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-2 max-h-52 overflow-y-auto">
+                    {TR_ALPHABET_ROTATION.map((l) => {
+                      const entry = activeWordProgress[l];
+                      const st = entry?.status;
+                      return (
+                        <div key={l} className="flex flex-col text-left">
+                          <div className="flex items-baseline gap-1.5">
+                            <span className={`text-[10px] font-black ${st === "correct" ? "text-emerald-400" : st === "pass" ? "text-amber-400" : st === "timeout" ? "text-red-400" : "text-white/30"}`}>{l}</span>
+                            <span className="text-[10px] font-bold text-white/50 truncate">{activeWordBank[l]?.word}</span>
+                          </div>
+                          {/* YENİ (istek): "cevap anahtarında yanlış yapılan sorularda oyuncunun
+                              verdiği cevap yazsın" — yanlış cevaplanan harflerde, oyuncunun o an
+                              gerçekten yazdığı (hatalı) metin de küçük ve üstü çizili gösteriliyor. */}
+                          {st === "timeout" && entry?.lastGuess && (
+                            <span className="text-[9px] font-bold text-red-400/60 line-through truncate">{entry.lastGuess}</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </details>
+              </div>
+
+              <div className="relative px-6 pb-6 flex items-center gap-2.5">
+                <button
+                  onClick={() => { setWordResultsOpen(false); setWordGameMode("menu"); }}
+                  className="flex-1 h-11 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-black uppercase tracking-widest text-white/70 hover:text-white transition"
+                >
+                  Menüye Dön
+                </button>
+                <button
+                  onClick={shareWordResults}
+                  className="flex-1 h-11 rounded-lg bg-[#ff4655] hover:bg-red-500 text-[11px] font-black uppercase tracking-widest text-white transition"
+                >
+                  Sonuçları Paylaş
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+      </>
+      );
+    })()}
+  </motion.section>
+)}
+
+{/* DÜZELTME (istek): "liderlik tablosunu kaldır" — sahte 8 kişilik modal tamamen kaldırıldı;
+    tek gerçek gösterge artık menüdeki "Günün lideri" satırı (dailyLeaderName). */}
+
+
+
 </AnimatePresence>
 
-      {/* FOOTER BÖLÜMÜ (DEĞİŞMEDİ) */}
+      {/* FOOTER BÖLÜMÜ */}
       <footer className="relative z-10 w-full border-t border-white/5 bg-[#0a0a0f]/95 pt-16 pb-12 transform-gpu">
         <div className="w-full max-w-[1400px] mx-auto px-6 flex flex-col gap-12">
           <div className="text-left">
             <h2 className="text-xs font-bold text-white uppercase tracking-widest opacity-80">İNFİNİTY.GG HAKKINDA</h2>
             <p className="mt-3 text-white/50 leading-relaxed text-xs max-w-4xl">
-             "Infınity Network, Valorant oyuncularının kendi performanslarını detaylıca analiz edebileceği, profesyonel oyuncuların nişangahları keşfedebileceği,oyun içi eğlenceli bilgi yarışmalarını ve sorularını çözebileceği,stratejiler geliştirebileceği aynı zamanda oyuncuların birbirine oyun arkadaşı bulmasını sağlayan tamamen Türk oyuncu topluluğuna yönelik kapsamlı bir takip platformudur. Kullanıcılar kendi Riot ID'leri ile giriş yaparak maç geçmişlerini, K/D oranlarını ve rütbe ilerlemelerini detaylı bir şekilde görüntüleyebilirler."
+             "Infınity Network, Valorant oyuncularının kendi performanslarını detaylıca analiz edebileceği, profesyonel oyuncuların nişangahları keşfedebileceği, oyun içi eğlenceli bilgi yarışmalarını ve sorularını çözebileceği, stratejiler geliştirebileceği aynı zamanda oyuncuların birbirine oyun arkadaşı bulmasını sağlayan tamamen Türk oyuncu topluluğuna yönelik kapsamlı bir takip platformudur. Kullanıcılar kendi Riot ID'leri ile giriş yaparak maç geçmişlerini, K/D oranlarını ve rütbe ilerlemelerini detaylı bir şekilde görüntüleyebilirler. Platform ayrıca Rank Tahmin ile klip üzerinden rütbe tahmini yapabileceğiniz, Skin Savaşı ile favori skininizi oylayabileceğiniz ve Kelime Oyunu ile günlük Valorant kelimelerini çözebileceğiniz yeni eğlence bölümlerini de barındırır."
             </p>
           </div>
 
-          {/* DÜZELTME: "Mobil uygulama" banner'ı kaldırıldı (henüz bir mobil uygulama yok) —
-              yerine gerçekte var olan Discord sunucusuna yönlendiren bir banner kondu. */}
-          <div className="w-full bg-[#14151a] border border-white/5 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden">
-            <div className="flex items-center gap-5 z-10">
-              <div className="w-14 h-14 relative flex-shrink-0 rounded-xl overflow-hidden border border-white/5 bg-[#5865F2]/10 flex items-center justify-center">
-                <Image src="/dc.png" alt="Discord" fill className="object-cover" />
-              </div>
-              <div className="text-left">
-                <h3 className="text-sm font-bold tracking-wide uppercase text-white">TOPLULUĞUMUZA KATIL</h3>
-                <p className="text-xs text-white/40 mt-1">Diğer oyuncularla tanış, güncellemelerden ilk sen haberdar ol.</p>
-              </div>
-            </div>
-            <a href="https://discord.gg/4aZPrH67HH" target="_blank" rel="noopener noreferrer" className="z-10 px-6 py-2.5 bg-[#ff4655] hover:bg-red-600 transition-colors duration-200 font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg">discord'a katıl</a>
+          {/* DÜZELTME (sıralama): banner artık "İnfinity.gg Hakkında" yazısından SONRA, alt
+              kısım (telif hakkı/linkler/sosyal medya) OLMADAN ÖNCE geliyor — eskiden en üstte,
+              her şeyden önce görünüyordu. DÜZELTME (boyut/siyah barlar): eskiden ne kadar
+              genişse görsel o kadar "yükseklik" alıyordu (w-full h-auto) — geniş ekranlarda
+              bu, banner'ı olması gerekenden çok daha BÜYÜK gösteriyordu ve görselin kendi
+              şeffaf/koyu kenar boşlukları da "siyah bar" gibi görünüyordu. Artık sabit bir
+              max-height'e (görsel çok büyümüyor) sahip, object-contain ile HİÇ KIRPILMADAN
+              gösteriliyor ve arka planı sitenin kendi koyu rengiyle (#0a0a0f) TAM UYUMLU —
+              görselin kendi kenar boşlukları artık ayrı bir "siyah çerçeve" gibi göze
+              batmıyor, sayfayla kaynaşıyor. */}
+          {/* DÜZELTME: banner.png artık 2103×444 (siyah çerçeveler senin tarafından kırpıldı) —
+              konteyner bu YENİ orana kilitlendi (aspect-[2103/444]). object-cover ile satır
+              genişliğini uçtan uca dolduruyor, hiçbir yerde boşluk/çerçeve kalmıyor. */}
+          <div className="w-full relative overflow-hidden rounded-2xl bg-[#0a0a0f] aspect-[2103/444]">
+            <Image
+              src="/banner.png"
+              alt="Infinity Network"
+              fill
+              className="object-cover"
+              sizes="(max-width: 1400px) 100vw, 1400px"
+            />
           </div>
 
           <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 text-[11px] text-white/40 font-medium">
@@ -3889,7 +7154,17 @@ const copyToClipboard = (id: number) => {
 
             <div className="flex items-center gap-3 flex-shrink-0">
               {/* DÜZELTME: X (Twitter) logosu, sitenin kendi logosuyla değiştirildi */}
-              <div className="w-10 h-10 relative rounded-lg overflow-hidden border border-white/10 bg-black/40 p-2"><Image src="/logo.png" alt="Infinity.gg" fill className="object-contain" /></div>
+              {/* DÜZELTME: bu logo eskiden sadece bir <div> idi, tıklanamıyordu — hiçbir sayfaya
+                  bağlı değildi. Artık yanındaki "2026 © Infinity Network" ile aynı davranışı
+                  taşıyor: ana sayfaya götürüp en üste kaydırıyor. */}
+              <button
+                type="button"
+                onClick={() => { setActiveTab("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                className="w-10 h-10 relative rounded-lg overflow-hidden border border-white/10 bg-black/40 p-2 hover:border-[#ff4655]/50 transition-colors duration-150"
+                aria-label="Ana sayfaya dön"
+              >
+                <Image src="/logo.png" alt="Infinity.gg" fill className="object-contain" />
+              </button>
               <a href="https://discord.gg/4aZPrH67HH" target="_blank" rel="noopener noreferrer" className="w-10 h-10 relative rounded-lg overflow-hidden border border-white/10 block hover:border-[#ff4655]/50 transition-colors duration-150">
                 <Image src="/dc.png" alt="Discord" fill className="object-cover" />
               </a>

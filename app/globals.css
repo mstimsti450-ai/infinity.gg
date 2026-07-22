@@ -24,3 +24,21 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Forumun sağ kenarında içerikten bağımsız, hafif sakura dalı hissi. */
+.forum-card-sakura { position:absolute; right:-5px; bottom:-8px; width:105px; height:82px; border-top:2px solid rgba(255,157,190,.30); border-left:2px solid rgba(255,157,190,.2); border-radius:70% 0 0 0; opacity:.72; transform:rotate(-13deg); }
+.forum-card-sakura span { position:absolute; color:#ff9fbb; text-shadow:0 0 18px rgba(255,96,145,.55); animation:sakura-float 4s ease-in-out infinite; }
+.forum-card-sakura span:nth-child(1) { left:4px; top:-11px; font-size:18px; }.forum-card-sakura span:nth-child(2) { left:42px; top:14px; font-size:15px; animation-delay:-1s; }.forum-card-sakura span:nth-child(3) { left:65px; top:48px; font-size:17px; animation-delay:-2s; }
+@keyframes sakura-float { 50% { transform: translate(-5px, 8px) rotate(14deg); opacity: .45; } }
+
+/* Takım Bul için alçak kontrastlı dağ ve ay katmanı; içerik her zaman bunun üzerinde kalır. */
+.team-finder-scene::before { content:""; pointer-events:none; position:fixed; inset:0; z-index:-2; opacity:.55; background:radial-gradient(circle at 84% 14%,rgba(172,201,255,.16),transparent 0 18%),linear-gradient(180deg,rgba(4,10,20,.28),rgba(4,8,13,.88)); }
+.team-finder-moon { pointer-events:none; position:absolute; z-index:-1; top:82px; right:7%; width:74px; height:74px; border-radius:50%; background:#e8efff; box-shadow:0 0 0 9px rgba(186,208,255,.05),0 0 58px 14px rgba(132,165,255,.18); opacity:.58; }
+.team-finder-mountains { pointer-events:none; position:absolute; z-index:-1; left:0; right:0; bottom:0; height:270px; opacity:.52; background:linear-gradient(150deg,transparent 0 24%,rgba(31,63,74,.9) 24.2% 38%,transparent 38.2%),linear-gradient(28deg,transparent 0 36%,rgba(17,38,49,.95) 36.2% 54%,transparent 54.2%),linear-gradient(152deg,transparent 0 49%,rgba(19,48,53,.9) 49.2% 67%,transparent 67.2%),linear-gradient(25deg,transparent 0 63%,rgba(10,24,35,.98) 63.2% 100%); mask-image:linear-gradient(to bottom,transparent,black 30%); }
+
+/* Dağ/ay, Takım Bul kartının içinde; içeriğin altında sakin bir imza gibi görünür. */
+.team-card-moon { pointer-events:none; position:absolute; right:22px; top:15px; width:28px; height:28px; border-radius:50%; opacity:.26; background:#d9e7ff; box-shadow:0 0 22px 5px rgba(126,176,255,.34); }
+.team-card-mountains { pointer-events:none; position:absolute; inset:auto 0 0; height:52px; opacity:.35; background:linear-gradient(145deg,transparent 0 25%,#0d343a 25.5% 45%,transparent 45.5%),linear-gradient(35deg,transparent 0 42%,#10272f 42.5% 68%,transparent 68.5%); mask-image:linear-gradient(to bottom,transparent,black 42%); }
+
+.skin-rankings::before { content:""; pointer-events:none; position:absolute; inset:0; z-index:-1; background-color:#071019; background-image:linear-gradient(rgba(255,70,85,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,70,85,.07) 1px,transparent 1px),radial-gradient(circle at 50% 0,rgba(255,70,85,.1),transparent 40%); background-size:38px 38px,38px 38px,auto; mask-image:linear-gradient(to bottom,black,transparent 92%); }
+.skin-setup-choices > :first-child { order:20; grid-column:1 / -1; }

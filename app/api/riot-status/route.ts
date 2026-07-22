@@ -27,13 +27,21 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await res.json();
-    const hasIncidents = (data.incidents || []).length > 0;
-    const hasMaintenance = (data.maintenances || []).length > 0;
+    const maintenances = data.maintenances || [];
+    const incidents = data.incidents || [];
+
+    // DÜZELTME: önceden HERHANGİ bir "incident" (bunlar genelde küçük/kozmetik uyarılar
+    // olabiliyor, tam kesinti anlamına gelmiyor) bile "Sunucular Çevrimdışı" gösteriyordu —
+    // "sunucular aktif ama çevrimdışı görünüyor" şikayetinin sebebi muhtemelen buydu.
+    // Artık sadece GERÇEK "maintenance" (planlı/plansız tam bakım) durumu "çevrimdışı" sayılıyor.
+    // "incident_severity" alanı "critical" olan kayıtlar da yine de çevrimdışı sayılır.
+    const hasCriticalIncident = incidents.some((i: any) => i.incident_severity === "critical");
+    const hasMaintenance = maintenances.length > 0;
 
     return NextResponse.json({
-      online: !hasIncidents && !hasMaintenance,
-      incidentCount: (data.incidents || []).length,
-      maintenanceCount: (data.maintenances || []).length,
+      online: !hasMaintenance && !hasCriticalIncident,
+      maintenanceCount: maintenances.length,
+      incidentCount: incidents.length, // bilgi amaçlı, artık "offline" kararını tek başına etkilemiyor
     });
   } catch (err) {
     return NextResponse.json({ error: "Riot sunucularına bağlanılamadı." }, { status: 500 });
