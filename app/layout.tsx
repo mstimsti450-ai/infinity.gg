@@ -14,14 +14,42 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://infnetwork.gg"),
+
   title: "Infinity Network - Valorant Topluluk Platformu",
+
   description:
     "Valorant nişangahlarını keşfet, Rank Tahmin oyna, Kliplerini paylaş ve Infinity Network topluluğuna katıl.",
+
   icons: {
     icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
   },
+
   openGraph: {
-    title: "İnfinity Network",
+    type: "website",
+    url: "https://infnetwork.gg",
+    siteName: "Infinity Network",
+    locale: "tr_TR",
+
+    title: "Infinity Network",
+    description:
+      "Valorant nişangahlarını keşfet, Rank Tahmin oyna ve topluluğa katıl.",
+
+    images: [
+      {
+        url: "/banner.png",
+        width: 1200,
+        height: 630,
+        alt: "Infinity Network",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Infinity Network",
     description:
       "Valorant nişangahlarını keşfet, Rank Tahmin oyna ve topluluğa katıl.",
     images: ["/banner.png"],
@@ -35,13 +63,13 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="en"
+      lang="tr"
       className={`${inter.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-  {children}
-  <Analytics />
-</body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
