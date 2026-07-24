@@ -14,7 +14,7 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://infnetwork.gg"),
+  metadataBase: new URL("https://infinity-gg-zeta.vercel.app"),
 
   title: "Infinity Network - Valorant Topluluk Platformu",
 
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 
   openGraph: {
     type: "website",
-    url: "https://infnetwork.gg",
+    url: "https://infinity-gg-zeta.vercel.app",
     siteName: "Infinity Network",
     locale: "tr_TR",
 
