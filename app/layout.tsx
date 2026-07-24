@@ -39,7 +39,7 @@ export const metadata: Metadata = {
 
     images: [
       {
-        url: "/banner.png",
+        url: "/logo.png",
         width: 1200,
         height: 630,
         alt: "Infinity Network",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     title: "Infinity Network",
     description:
       "Valorant nişangahlarını keşfet, Rank Tahmin oyna ve topluluğa katıl.",
-    images: ["/banner.png"],
+    images: ["/logo.png"],
   },
 };
 
