@@ -2657,8 +2657,6 @@ function PageContent() {
     codeCopied: { TR: "KOD KOPYALANDI", US: "CODE COPIED", DE: "CODE KOPIERT" },
     // --- Bilgi Yarışması ekstra (YENİ) ---
     quizJoinBtn: { TR: "YARIŞMAYA KATIL", US: "JOIN QUIZ", DE: "QUIZ BEITRETEN" },
-    quizDailyLimitReached: { TR: "GÜNLÜK HAKKIN DOLDU", US: "DAILY LIMIT REACHED", DE: "TAGESLIMIT ERREICHT" },
-    quizLiveLeaderboard: { TR: "CANLI LİDERLİK TABLOSU", US: "LIVE LEADERBOARD", DE: "LIVE-BESTENLISTE" },
     quizBackToMenu: { TR: "Ana Menüye Dön", US: "Back to Menu", DE: "Zurück zum Menü" },
     quizNextQuestion: { TR: "Sonraki Soru", US: "Next Question", DE: "Nächste Frage" },
     quizSeeResults: { TR: "Sonuçları Gör", US: "See Results", DE: "Ergebnisse Ansehen" },
