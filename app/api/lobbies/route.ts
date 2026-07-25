@@ -21,7 +21,16 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { nick, minRank, maxRank, mode, mic, slots, code, message, playerCount, rankCutoff } = body;
+  // DÜZELTME (bug — "ana hesabımda breach avatarı açıp lobi oluşturuyorum, yan hesaba geçince
+  // lobiler kısmında varsayılan avatar gözüküyor"): `avatarId` frontend'den zaten gönderiliyordu
+  // ama burada body'den hiç okunmuyordu, bu yüzden aşağıdaki `.insert()` çağrısına hiç dahil
+  // edilmiyordu — veritabanına her lobi avatarsız (avatar_id = null) yazılıyordu. Lobiyi
+  // oluşturan kendi ekranında "kendi lobinse canlı/güncel avatarını göster" kuralı bu boşluğu
+  // gizliyordu (o yüzden kendi tarayıcında sorun hiç görünmüyordu); ama gerçekte veritabanına
+  // hiçbir zaman yazılmadığı için başka bir hesap o lobiye baktığında (`avatarId` null geldiği
+  // için) hep varsayılan avatara düşüyordu. Artık `avatarId` okunuyor ve `avatar_id` sütununa
+  // gerçekten kaydediliyor.
+  const { nick, minRank, maxRank, mode, mic, slots, code, message, playerCount, rankCutoff, avatarId } = body;
 
   if (!nick || !code) {
     return NextResponse.json({ error: "nick ve code zorunludur." }, { status: 400 });
@@ -41,6 +50,7 @@ export async function POST(req: NextRequest) {
       message: message ? String(message).slice(0, 120) : null,
       player_count: Number(playerCount) || 1,
       rank_cutoff: !!rankCutoff,
+      avatar_id: avatarId ? String(avatarId) : null,
     })
     .select()
     .single();
