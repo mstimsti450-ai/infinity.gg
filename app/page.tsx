@@ -1619,7 +1619,10 @@ function PageContent() {
     fetch("/api/rank-clips")
       .then(async (res) => res.ok ? res.json() : Promise.reject(await res.json()))
       .then((data) => setRankClips(Array.isArray(data.clips) ? data.clips : []))
-      .catch(() => setRankToast("Klipler yüklenemedi. Veritabanı kurulumu kontrol edilmeli."));
+      .catch(() => setRankClips([])); // DÜZELTME (istek — "şu yazıyı sil"): kullanıcıya "Veritabanı
+      // kurulumu kontrol edilmeli" gibi teknik/dev'e özel bir hata artık gösterilmiyor — istek
+      // başarısız olursa sessizce boş listeye düşülüyor, zaten var olan "Henüz klip yok" durumu
+      // devreye giriyor.
   }, []);
   const submitRankClip = () => {
     const url = rankUploadUrl.trim();
@@ -2611,6 +2614,20 @@ function PageContent() {
     wordGameContinue: { TR: "Devam Et", US: "Continue", DE: "Fortsetzen" },
     // --- Skin Savaşı ---
     skinWarTitle: { TR: "Skin Savaşı", US: "Skin War", DE: "Skin Krieg" },
+    // Not: Vandal/Phantom/Sheriff/Classic/Operator/Ghost gerçek Valorant silah isimleridir,
+    // Riot'un kendi lokalizasyonunda da her dilde AYNI kalır — bu yüzden çevrilmiyor.
+    // Sadece "Bıçak" gerçek bir tasvir kelimesi (silah adı değil), o çevriliyor.
+    weaponKnife: { TR: "Bıçak", US: "Knife", DE: "Messer" },
+    skinWarSearchPlaceholder: { TR: "Skin ara...", US: "Search skins...", DE: "Skins suchen..." },
+    skinWarStartVoting: { TR: "⚔ Oylamaya Başla", US: "⚔ Start Voting", DE: "⚔ Abstimmung Starten" },
+    skinWarAllSkins: { TR: "Tüm Skinler", US: "All Skins", DE: "Alle Skins" },
+    skinWarSetupBadge: { TR: "Savaş Kurulumu", US: "Battle Setup", DE: "Kampf-Einrichtung" },
+    skinWarSetupTitle: { TR: "Favori Skinini Seç", US: "Pick Your Favorite Skin", DE: "Wähle Deinen Lieblings-Skin" },
+    skinWarSetupSubtitle: { TR: "Karşılaştırma havuzunu ayarla, tur tur elemeyle şampiyonu bul.", US: "Set up the comparison pool and find the champion round by round.", DE: "Richte den Vergleichspool ein und finde den Champion Runde für Runde." },
+    skinWarChooseWeapon: { TR: "Silah Seç", US: "Choose Weapon", DE: "Waffe Wählen" },
+    skinWarPoolSize: { TR: "Havuz Boyutu", US: "Pool Size", DE: "Pool-Größe" },
+    skinWarLoading: { TR: "Yükleniyor…", US: "Loading…", DE: "Lädt…" },
+    skinWarStartBattle: { TR: "▶ Savaşı Başlat", US: "▶ Start Battle", DE: "▶ Kampf Starten" },
     skinWarSubtitle: { TR: "{{weapon}} skinleri için topluluk sıralaması.", US: "Community ranking for {{weapon}} skins.", DE: "Community-Rangliste für {{weapon}}-Skins." },
     skinWarBackToLeaderboard: { TR: "← Sıralamaya Dön", US: "← Back to Leaderboard", DE: "← Zurück zur Bestenliste" },
     skinWarStart: { TR: "Turnuvayı Başlat", US: "Start Tournament", DE: "Turnier Starten" },
@@ -2625,6 +2642,7 @@ function PageContent() {
     // --- Forum ---
     forumTitle: { TR: "Forum", US: "Forum", DE: "Forum" },
     forumNewPost: { TR: "Yeni Gönderi", US: "New Post", DE: "Neuer Beitrag" },
+    forumNoCommentsYet: { TR: "Henüz yorum yok. İlk yorumu sen yaz!", US: "No comments yet. Be the first to comment!", DE: "Noch keine Kommentare. Schreib den ersten!" },
     forumDailyLimitReached: { TR: "Bugünkü gönderi hakkını kullandın (3/3). Yarın tekrar dene.", US: "You've used today's post limit (3/3). Try again tomorrow.", DE: "Du hast dein heutiges Beitragslimit erreicht (3/3). Versuch es morgen wieder." },
     // --- Footer ---
     footerPrivacy: { TR: "Gizlilik Politikası", US: "Privacy Policy", DE: "Datenschutzrichtlinie" },
@@ -2688,6 +2706,14 @@ function PageContent() {
     forumAddPoll: { TR: "Anket ekle", US: "Add poll", DE: "Umfrage hinzufügen" },
     forumPollLabel: { TR: "Anket", US: "Poll", DE: "Umfrage" },
     forumNoVotesYet: { TR: "henüz oy yok", US: "no votes yet", DE: "noch keine Stimmen" },
+    forumBackToForum: { TR: "← Foruma dön", US: "← Back to forum", DE: "← Zurück zum Forum" },
+    forumViewCount: { TR: "{{count}} görüntülenme", US: "{{count}} views", DE: "{{count}} Aufrufe" },
+    forumVotesCount: { TR: "{{count}} oy", US: "{{count}} votes", DE: "{{count}} Stimmen" },
+    skinWarSelected: { TR: "✓ Seçildi", US: "✓ Selected", DE: "✓ Ausgewählt" },
+    skinWarPickThis: { TR: "Bunu Seç", US: "Pick This", DE: "Diesen Wählen" },
+    skinWarBattleHeader: { TR: "Valorant Skin Savaşı", US: "Valorant Skin War", DE: "Valorant Skin Krieg" },
+    skinWarProgress: { TR: "İlerleme", US: "Progress", DE: "Fortschritt" },
+    skinWarSkipMatch: { TR: "Bu Eşleşmeyi Atla ↻", US: "Skip This Matchup ↻", DE: "Dieses Match Überspringen ↻" },
     forumDailyLimitBtnOpen: { TR: "Günlük Hakkın Doldu", US: "Daily Limit Reached", DE: "Tageslimit Erreicht" },
     forumNewPostBtnOpen: { TR: "+ Yeni Gönderi", US: "+ New Post", DE: "+ Neuer Beitrag" },
     forumUsedTodayLabel: { TR: "gönderi hakkını kullandın", US: "posts used today", DE: "Beiträge heute verwendet" },
@@ -3116,6 +3142,12 @@ function PageContent() {
   const urlPost = searchParams.get("post");
   const [selectedForumPostId, setSelectedForumPostId] = useState<number | null>(urlPost ? Number(urlPost) : null);
   const [forumComments, setForumComments] = useState<any[]>([]);
+  // YENİ (istek — "verilen yanıtlar 10sn sonra geliyor, mesaj açılınca o çok kötü, anında
+  // gözüksün"): backend isteği ne kadar sürerse sürsün (bu büyük ihtimalle backend/veritabanı
+  // tarafında bir performans sorunu — ilgili API rotası bende yok, göremiyorum), en azından
+  // artık kullanıcı "hiçbir şey olmuyor" hissi yaşamıyor: yorum kutusu anında bir yükleniyor
+  // durumuna geçiyor VE bir önceki gönderinin ESKİ yorumları asla yanlışlıkla görünmüyor.
+  const [forumCommentsLoading, setForumCommentsLoading] = useState(false);
   const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
   const [newPostHasPoll, setNewPostHasPoll] = useState(false);
   const [newPostPollOptions, setNewPostPollOptions] = useState(["", ""]);
@@ -3145,13 +3177,19 @@ function PageContent() {
       setForumLikedIds(saved ? new Set(JSON.parse(saved)) : new Set());
     } catch { setForumLikedIds(new Set()); }
   }, [currentUser]);
-  const [forumPollVoted, setForumPollVoted] = useState<Set<number>>(() => {
-    if (typeof window === "undefined") return new Set();
+  // DÜZELTME (istek — "ankete oy verme kısmı hala çok kötü"): forumPollVoted da tıpkı
+  // forumLikedIds'teki gibi SABİT bir localStorage anahtarındaydı ("infinity_forum_polls_voted")
+  // — yani hesaba değil TARAYICIYA bağlıydı. Hesap değiştirince (ya da çıkış yapıp misafir
+  // olunca) anket hâlâ "oy verilmiş" gibi kilitli görünüyordu, üstelik giriş şartı da yoktu
+  // (misafir bile oy verebiliyordu). Artık hesaba özel bir anahtarda tutuluyor ve hesap
+  // değişince yeniden yükleniyor.
+  const [forumPollVoted, setForumPollVoted] = useState<Set<number>>(new Set());
+  useEffect(() => {
     try {
-      const saved = window.localStorage.getItem("infinity_forum_polls_voted");
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch { return new Set(); }
-  });
+      const saved = window.localStorage.getItem(`infinity_forum_polls_voted_${currentUser || "guest"}`);
+      setForumPollVoted(saved ? new Set(JSON.parse(saved)) : new Set());
+    } catch { setForumPollVoted(new Set()); }
+  }, [currentUser]);
 
   // DÜZELTME (istek): "F5 atınca bir anlığına mesajlar/en çok beğenilenler yok oluyor" —
   // forumPosts ilk render'da hep [] (boş) ile başlıyordu ve gerçek veri gelene kadar bu boş
@@ -3172,12 +3210,17 @@ function PageContent() {
   }, []);
 
   const fetchForumComments = async (postId: number) => {
+    setForumComments([]); // önceki gönderinin ESKİ yorumları asla yanlışlıkla görünmesin
+    setForumCommentsLoading(true);
     try {
       const res = await fetch(`/api/forum/comments?postId=${postId}`);
       if (!res.ok) return;
       const data = await res.json();
       if (Array.isArray(data.comments)) setForumComments(data.comments);
-    } catch {}
+    } catch {
+    } finally {
+      setForumCommentsLoading(false);
+    }
   };
 
   // DÜZELTME (istek): "bir gönderiye girip F5 atınca o gönderide kalsın, foruma dönmesin" —
@@ -6945,7 +6988,16 @@ const copyToClipboard = (id: number) => {
                         // DÜZELTME (istek — "bazı forumdaki avatarlarda yüklenemedi işareti
                         // gözüküyor"): görsel gerçekten yüklenemezse (bozuk/eksik dosya) artık
                         // kırık ikon yerine sessizce varsayılan avatara düşüyor.
-                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_AVATAR.img; }}
+                        onError={(e) => {
+                          // DÜZELTME (istek — "forum kısmında profillere neden böyle bişi oluyo",
+                          // resim yüklenemedi ama halkanın rengi eski/bozuk avatarınki kalıyordu):
+                          // artık resim yedeğe düşünce çevresindeki halka da DEFAULT_AVATAR'ın
+                          // rengine dönüyor, tutarsız "renkli halka + fotoğraf yok" görünümü kalmıyor.
+                          const img = e.currentTarget as HTMLImageElement;
+                          img.src = DEFAULT_AVATAR.img;
+                          const parent = img.parentElement;
+                          if (parent) parent.style.background = "linear-gradient(to bottom right, rgba(255,255,255,0.2), rgba(255,255,255,0.05))";
+                        }}
                       />
                     </div>
                     <span className="text-xs font-bold text-white/70">{post.author}</span>
@@ -6988,7 +7040,16 @@ const copyToClipboard = (id: number) => {
                         >
                           <span className="text-[10px] font-black text-white/25 w-3 flex-shrink-0">{i + 1}</span>
                           <div className={`relative w-7 h-7 rounded-full bg-gradient-to-br ${avatar.ring} flex-shrink-0 overflow-hidden`}>
-                            <Image src={avatar.img} alt={`${p.author} avatarı`} fill sizes="28px" className="object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_AVATAR.img; }} />
+                            <Image src={avatar.img} alt={`${p.author} avatarı`} fill sizes="28px" className="object-cover" onError={(e) => {
+                          // DÜZELTME (istek — "forum kısmında profillere neden böyle bişi oluyo",
+                          // resim yüklenemedi ama halkanın rengi eski/bozuk avatarınki kalıyordu):
+                          // artık resim yedeğe düşünce çevresindeki halka da DEFAULT_AVATAR'ın
+                          // rengine dönüyor, tutarsız "renkli halka + fotoğraf yok" görünümü kalmıyor.
+                          const img = e.currentTarget as HTMLImageElement;
+                          img.src = DEFAULT_AVATAR.img;
+                          const parent = img.parentElement;
+                          if (parent) parent.style.background = "linear-gradient(to bottom right, rgba(255,255,255,0.2), rgba(255,255,255,0.05))";
+                        }} />
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="text-[11px] font-bold text-white/70 truncate">{p.title}</p>
@@ -7024,7 +7085,7 @@ const copyToClipboard = (id: number) => {
             return (
               <div className="max-w-2xl mx-auto text-center py-16">
                 <p className="text-xs font-bold text-white/40">Bu gönderi bulunamadı.</p>
-                <button onClick={() => setSelectedForumPostId(null)} className="mt-4 text-xs font-black text-[#ff4655] hover:text-red-400">← Foruma dön</button>
+                <button onClick={() => setSelectedForumPostId(null)} className="mt-4 text-xs font-black text-[#ff4655] hover:text-red-400">{t("forumBackToForum")}</button>
               </div>
             );
           }
@@ -7048,7 +7109,16 @@ const copyToClipboard = (id: number) => {
               <div className="bg-[#14151a]/90 border border-white/10 rounded-xl p-6">
                 <div className="flex items-center gap-2.5 mb-3">
                   <div className={`relative w-9 h-9 rounded-full bg-gradient-to-br ${avatar.ring} flex-shrink-0 overflow-hidden`}>
-                    <Image src={avatar.img} alt={`${post.author} avatarı`} fill sizes="36px" className="object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_AVATAR.img; }} />
+                    <Image src={avatar.img} alt={`${post.author} avatarı`} fill sizes="36px" className="object-cover" onError={(e) => {
+                          // DÜZELTME (istek — "forum kısmında profillere neden böyle bişi oluyo",
+                          // resim yüklenemedi ama halkanın rengi eski/bozuk avatarınki kalıyordu):
+                          // artık resim yedeğe düşünce çevresindeki halka da DEFAULT_AVATAR'ın
+                          // rengine dönüyor, tutarsız "renkli halka + fotoğraf yok" görünümü kalmıyor.
+                          const img = e.currentTarget as HTMLImageElement;
+                          img.src = DEFAULT_AVATAR.img;
+                          const parent = img.parentElement;
+                          if (parent) parent.style.background = "linear-gradient(to bottom right, rgba(255,255,255,0.2), rgba(255,255,255,0.05))";
+                        }} />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-white">{post.author}</p>
@@ -7066,7 +7136,7 @@ const copyToClipboard = (id: number) => {
                 {post.poll_options && (
                   <div className="mt-5">
                     <p className="mb-2.5 text-[10px] font-black uppercase tracking-widest text-white/35">
-                      📊 Anket {totalVotes > 0 ? `· ${totalVotes} oy` : "· henüz oy yok"}
+                      📊 {t("forumPollLabel")} {totalVotes > 0 ? `· ${t("forumVotesCount", { count: totalVotes })}` : `· ${t("forumNoVotesYet")}`}
                     </p>
                     <div className="flex flex-col gap-2">
                       {post.poll_options.map((opt: string, i: number) => {
@@ -7080,10 +7150,11 @@ const copyToClipboard = (id: number) => {
                             disabled={alreadyVotedPoll}
                             onClick={() => {
                               if (alreadyVotedPoll) return;
+                              if (!requireLogin()) return; // YENİ: misafir artık ankete oy veremiyor
                               playClickSound();
                               const nextSet = new Set(forumPollVoted).add(post.id);
                               setForumPollVoted(nextSet);
-                              try { window.localStorage.setItem("infinity_forum_polls_voted", JSON.stringify([...nextSet])); } catch {}
+                              try { window.localStorage.setItem(`infinity_forum_polls_voted_${currentUser || "guest"}`, JSON.stringify([...nextSet])); } catch {}
                               fetch("/api/forum/poll-vote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ postId: post.id, optionIndex: i }) })
                                 .then((r) => (r.ok ? r.json() : null))
                                 .then((data) => { if (data?.pollVotes) setForumPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, poll_votes: data.pollVotes } : p))); })
@@ -7128,7 +7199,7 @@ const copyToClipboard = (id: number) => {
                   <button onClick={() => toggleForumLike("post", post.id, "dislike")} className={`flex items-center gap-1.5 text-xs font-bold transition-colors ${forumLikedIds.has(`post-dislike-${post.id}`) ? "text-blue-400" : "text-white/40 hover:text-white"}`}>
                     👎 {post.dislikes}
                   </button>
-                  <span className="text-xs font-bold text-white/30 ml-auto">👁 {post.view_count} görüntülenme</span>
+                  <span className="text-xs font-bold text-white/30 ml-auto">👁 {t("forumViewCount", { count: post.view_count })}</span>
                 </div>
               </div>
 
@@ -7174,13 +7245,37 @@ const copyToClipboard = (id: number) => {
                   </div>
                 )}
                 <div className="flex flex-col gap-2.5">
-                  {forumComments.map((c) => {
+                  {forumCommentsLoading ? (
+                    // YENİ: yorumlar gelene kadar boş görünmek yerine kısa bir iskelet gösterilir.
+                    <>
+                      {[0, 1].map((i) => (
+                        <div key={i} className="bg-[#14151a]/70 border border-white/5 rounded-lg p-3 animate-pulse">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <div className="w-5 h-5 rounded-full bg-white/10" />
+                            <div className="h-2.5 w-24 rounded bg-white/10" />
+                          </div>
+                          <div className="h-2.5 w-3/4 rounded bg-white/5" />
+                        </div>
+                      ))}
+                    </>
+                  ) : forumComments.length === 0 ? (
+                    <p className="text-center text-[11px] font-bold text-white/25 py-4">{t("forumNoCommentsYet")}</p>
+                  ) : forumComments.map((c) => {
                     const cAvatar = (c.author === currentUser ? selectedAvatar : null) || findAvatarById(c.avatar_id);
                     return (
                       <div key={c.id} className="bg-[#14151a]/70 border border-white/5 rounded-lg p-3">
                         <div className="flex items-center gap-2 mb-1.5">
                           <div className={`relative w-5 h-5 rounded-full bg-gradient-to-br ${cAvatar.ring} flex-shrink-0 overflow-hidden`}>
-                            <Image src={cAvatar.img} alt={`${c.author} avatarı`} fill sizes="20px" className="object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_AVATAR.img; }} />
+                            <Image src={cAvatar.img} alt={`${c.author} avatarı`} fill sizes="20px" className="object-cover" onError={(e) => {
+                          // DÜZELTME (istek — "forum kısmında profillere neden böyle bişi oluyo",
+                          // resim yüklenemedi ama halkanın rengi eski/bozuk avatarınki kalıyordu):
+                          // artık resim yedeğe düşünce çevresindeki halka da DEFAULT_AVATAR'ın
+                          // rengine dönüyor, tutarsız "renkli halka + fotoğraf yok" görünümü kalmıyor.
+                          const img = e.currentTarget as HTMLImageElement;
+                          img.src = DEFAULT_AVATAR.img;
+                          const parent = img.parentElement;
+                          if (parent) parent.style.background = "linear-gradient(to bottom right, rgba(255,255,255,0.2), rgba(255,255,255,0.05))";
+                        }} />
                           </div>
                           <span className="text-[11px] font-bold text-white/70">{c.author}</span>
                           <span className="text-[9px] text-white/25">· <RelativeTimeText createdAt={new Date(c.created_at).getTime()} /></span>
@@ -7610,14 +7705,14 @@ const copyToClipboard = (id: number) => {
       const WEAPON_OPTIONS: { key: string; label: string }[] = [
         { key: "Vandal", label: "Vandal" },
         { key: "Phantom", label: "Phantom" },
-        { key: "Bıçak", label: "Bıçak" },
+        { key: "Bıçak", label: t("weaponKnife") },
         { key: "Sheriff", label: "Sheriff" },
         { key: "Classic", label: "Classic" },
         { key: "Operator", label: "Operator" },
         { key: "Ghost", label: "Ghost" },
       ];
       const POOL_SIZES: { key: number | "all"; label: string }[] = [
-        { key: "all", label: "Tüm Skinler" },
+        { key: "all", label: t("skinWarAllSkins") },
         { key: 16, label: "Top 16" },
         { key: 32, label: "Top 32" },
         { key: 64, label: "Top 64" },
@@ -7856,7 +7951,7 @@ const copyToClipboard = (id: number) => {
                   tıklanınca seçsin" — kart zaten tamamen tıklanabilir bir <button>, bu artık
                   ayrı bir buton değil, sadece küçük bir görsel ipucu rozeti. */}
               <span className="mt-3 mx-auto block w-fit rounded-md border border-white/15 group-hover:border-[#ff4655]/60 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white/50 group-hover:text-white transition">
-                {isWinner ? "✓ Seçildi" : "Bunu Seç"}
+                {isWinner ? t("skinWarSelected") : t("skinWarPickThis")}
               </span>
             </button>
           );
@@ -7873,12 +7968,12 @@ const copyToClipboard = (id: number) => {
               <button onClick={() => setExitConfirm({ kind: "skin-war", targetTab: null })} className="text-xs font-black text-white/70 hover:text-white transition">{t("skinWarBackToLeaderboard")}</button>
               {/* DÜZELTME (istek): round numarası kaldırıldı, sade bir başlık kaldı; başlık da
                   daha açık/parlak bir beyazla yazılıyor. */}
-              <p className="text-[10px] font-black uppercase tracking-widest text-white/70">Valorant Skin Savaşı</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/70">{t("skinWarBattleHeader")}</p>
               {/* DÜZELTME (istek): burada artık sadece o roundun eşleşme sayısı (örn. "8")
                   değil, TÜM turnuva boyunca yapılacak toplam seçim sayısı gösteriliyor
                   (örn. Top 16 seçildiyse hedef "16"). Round değiştikçe SIFIRLANMIYOR. */}
               <div className="rounded-lg border border-[#ff4655]/30 bg-[#ff4655]/10 px-3 py-1.5">
-                <p className="text-[9px] font-black uppercase tracking-widest text-[#ff4655]">İlerleme</p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-[#ff4655]">{t("skinWarProgress")}</p>
                 <p className="text-xs font-black text-white">{skinCumulativePicks} / {skinTotalPool}</p>
               </div>
             </div>
@@ -7913,7 +8008,7 @@ const copyToClipboard = (id: number) => {
                 disabled={!!skinWinnerFlash}
                 className="h-9 px-5 rounded-lg border border-white/15 bg-white/5 text-xs font-black text-white/70 hover:bg-white/10 hover:text-white hover:border-white/30 transition disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                Bu Eşleşmeyi Atla ↻
+                {t("skinWarSkipMatch")}
               </button>
             </div>
           </div>
@@ -7961,14 +8056,14 @@ const copyToClipboard = (id: number) => {
               <input
                 value={skinSearch}
                 onChange={(e) => setSkinSearch(e.target.value)}
-                placeholder="Skin ara…"
+                placeholder={t("skinWarSearchPlaceholder")}
                 className="h-10 w-40 sm:w-56 rounded-lg border border-white/10 bg-black/30 px-3.5 text-xs font-bold text-white placeholder:text-white/25 focus:border-[#ff4655]/50 focus:outline-none"
               />
               <button
                 onClick={() => setSkinView("setup")}
                 className="h-10 px-5 rounded-lg bg-[#ff4655] hover:bg-red-500 text-[11px] font-black uppercase tracking-widest text-white transition whitespace-nowrap"
               >
-                ⚔ Oylamaya Başla
+                {t("skinWarStartVoting")}
               </button>
             </div>
           </div>
@@ -8197,16 +8292,16 @@ const copyToClipboard = (id: number) => {
               <div className="relative flex items-start justify-between gap-3 px-6 pt-6">
                 <div>
                   <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-[#ff4655]">
-                    <span>⚔</span> Savaş Kurulumu
+                    <span>⚔</span> {t("skinWarSetupBadge")}
                   </p>
-                  <h1 className="mt-2 text-2xl font-black text-white">Favori Skinini Seç</h1>
-                  <p className="mt-1 text-xs text-white/45">Karşılaştırma havuzunu ayarla, tur tur elemeyle şampiyonu bul.</p>
+                  <h1 className="mt-2 text-2xl font-black text-white">{t("skinWarSetupTitle")}</h1>
+                  <p className="mt-1 text-xs text-white/45">{t("skinWarSetupSubtitle")}</p>
                 </div>
                 <button onClick={() => setSkinView("leaderboard")} className="flex-shrink-0 text-white/40 hover:text-white transition text-lg leading-none">✕</button>
               </div>
 
               <div className="relative mt-6 px-6">
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3">Silah Seç</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3">{t("skinWarChooseWeapon")}</p>
                 <div className="flex flex-wrap gap-2">
                   {WEAPON_OPTIONS.map((w) => (
                     <button
@@ -8221,7 +8316,7 @@ const copyToClipboard = (id: number) => {
                   ))}
                 </div>
 
-                <p className="mt-6 text-[10px] font-black uppercase tracking-widest text-white/40 mb-3">Havuz Boyutu</p>
+                <p className="mt-6 text-[10px] font-black uppercase tracking-widest text-white/40 mb-3">{t("skinWarPoolSize")}</p>
                 <div className="flex flex-wrap gap-2">
                   {POOL_SIZES.map((p) => (
                     <button
@@ -8246,7 +8341,7 @@ const copyToClipboard = (id: number) => {
                   disabled={skinCatalogLoading || weaponPool.length < 2}
                   className="h-11 px-6 rounded-lg bg-[#ff4655] hover:bg-red-500 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-black text-white transition"
                 >
-                  {skinCatalogLoading ? "Yükleniyor…" : "▶ Savaşı Başlat"}
+                  {skinCatalogLoading ? t("skinWarLoading") : t("skinWarStartBattle")}
                 </button>
               </div>
             </div>
